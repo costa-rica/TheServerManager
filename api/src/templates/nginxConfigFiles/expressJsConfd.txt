@@ -1,0 +1,14 @@
+server {
+    listen       80;
+    listen       [::]:80;
+    server_name  <ReplaceMe: server name>;
+    client_max_body_size 10G;
+
+location / {
+        proxy_pass http://localhost:<ReplaceMe: port number>;
+        include /etc/nginx/proxy_params;
+        proxy_redirect off;
+        # Increase the proxy read timeout
+        proxy_read_timeout 600s;  # Sets the timeout to 600 seconds
+    }
+}
