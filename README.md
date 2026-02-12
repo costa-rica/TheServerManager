@@ -13,10 +13,10 @@ All machines — API instances and the web server — share a single MongoDB dat
 
 ## Deployment model
 
-| Component | Runs on |
-|---|---|
-| `api/` | Every managed Ubuntu server |
-| `web/` | Primary server only |
+| Component | Runs on                     |
+| --------- | --------------------------- |
+| `api/`    | Every managed Ubuntu server |
+| `web/`    | Primary server only         |
 
 ---
 
@@ -101,14 +101,29 @@ TheServerManager/
 
 ## Documentation
 
-| Document | Description |
-|---|---|
-| [docs/TheServerManagerOverview.md](docs/TheServerManagerOverview.md) | Full ecosystem overview and goals |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md) | API endpoint reference index |
-| [docs/DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md) | MongoDB schema and collection reference |
-| [docs/SERVER_INTERACTIONS.md](docs/SERVER_INTERACTIONS.md) | How the API, web, and servers communicate |
-| [docs/api/](docs/api/) | Detailed docs for each API router |
-| [docs/requirements/](docs/requirements/) | Feature and error handling requirements |
-| [docs/server-scripts/](docs/server-scripts/) | Scripts deployed to managed servers |
-| [api/CLAUDE.md](api/CLAUDE.md) | API-specific development notes |
-| [web/CLAUDE.md](web/CLAUDE.md) | Web-specific development notes |
+| Document                                                             | Description                               |
+| -------------------------------------------------------------------- | ----------------------------------------- |
+| [docs/TheServerManagerOverview.md](docs/TheServerManagerOverview.md) | Full ecosystem overview and goals         |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md)                       | API endpoint reference index              |
+| [docs/DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md)             | MongoDB schema and collection reference   |
+| [docs/SERVER_INTERACTIONS.md](docs/SERVER_INTERACTIONS.md)           | How the API, web, and servers communicate |
+| [docs/api/](docs/api/)                                               | Detailed docs for each API router         |
+| [docs/requirements/](docs/requirements/)                             | Feature and error handling requirements   |
+| [docs/server-scripts/](docs/server-scripts/)                         | Scripts deployed to managed servers       |
+| [api/CLAUDE.md](api/CLAUDE.md)                                       | API-specific development notes            |
+| [web/CLAUDE.md](web/CLAUDE.md)                                       | Web-specific development notes            |
+
+---
+
+## Server migration
+
+[docs/references/ubuntu-service-files/](docs/references/ubuntu-service-files/) contains `.service` files for running the API and web app as systemd services on Ubuntu.
+
+- The files with "obe" suffix are old files that are no longer used. The .service files are the current examples that are being used on our production servers.
+
+These replace the service files from the previously segregated repos. The key path change is:
+
+| Before                                           | After                                          |
+| ------------------------------------------------ | ---------------------------------------------- |
+| `/home/nick/applications/TheServerManagerAPI`    | `/home/nick/applications/TheServerManager/api` |
+| `/home/nick/applications/TheServerManagerNextJs` | `/home/nick/applications/TheServerManager/web` |

@@ -1,0 +1,22 @@
+[Unit]
+Description=TheServerManager NextJS Application
+After=network.target
+
+[Service]
+Type=simple
+User=app_runner
+Group=nick
+WorkingDirectory=/home/nick/applications/TheServerManagerNextJs
+Environment="NODE_ENV=production"
+Environment="PORT=8003"
+EnvironmentFile=/home/nick/applications/TheServerManagerNextJs/.env.local
+Environment="PATH=/usr/bin:/usr/local/bin"
+ExecStart=/usr/bin/npm start
+# For APIs / NextJS
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Install]
+WantedBy=multi-user.target

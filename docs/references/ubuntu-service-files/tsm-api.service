@@ -1,0 +1,16 @@
+[Unit]
+Description=The Server Manager API Application
+After=network.target
+
+[Service]
+Type=simple
+User=nick
+Group=nick
+WorkingDirectory=/home/nick/applications/TheServerManager/api
+Environment="NODE_ENV=production"
+Environment="PATH=/usr/bin:/usr/local/bin"
+EnvironmentFile=/home/nick/applications/TheServerManager/api/.env
+ExecStart=/usr/bin/node dist/server.js
+
+[Install]
+WantedBy=multi-user.target
