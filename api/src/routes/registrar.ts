@@ -227,7 +227,7 @@ router.get(
   authenticateToken,
   async (req: Request, res: Response) => {
     try {
-      const { domain } = req.params;
+      const { domain } = req.params as { domain: string };
 
       // Validate domain parameter
       if (!domain) {

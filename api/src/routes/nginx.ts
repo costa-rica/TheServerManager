@@ -488,7 +488,7 @@ router.get("/config-file/:nginxFilePublicId", async (req: Request, res: Response
   const execAsync = promisify(exec);
 
   try {
-    const { nginxFilePublicId } = req.params;
+    const { nginxFilePublicId } = req.params as { nginxFilePublicId: string };
 
     // Validate publicId format (UUID v4)
     if (!isValidUUID(nginxFilePublicId)) {
@@ -587,7 +587,7 @@ router.post("/config-file/:nginxFilePublicId", async (req: Request, res: Respons
   const execAsync = promisify(exec);
 
   try {
-    const { nginxFilePublicId } = req.params;
+    const { nginxFilePublicId } = req.params as { nginxFilePublicId: string };
     const { content } = req.body;
 
     // Validate publicId format (UUID v4)
@@ -796,7 +796,7 @@ router.post("/config-file/:nginxFilePublicId", async (req: Request, res: Respons
 // 🔹 DELETE /nginx/:publicId: Delete nginx config file and database record
 router.delete("/:publicId", async (req: Request, res: Response) => {
   try {
-    const { publicId } = req.params;
+    const { publicId } = req.params as { publicId: string };
 
     // Validate publicId format (UUID v4)
     if (!isValidUUID(publicId)) {

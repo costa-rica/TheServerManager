@@ -130,7 +130,7 @@ Critical .env variables:
 The `npm run build` command:
 
 1. Compiles TypeScript (`tsc`)
-2. Copies templates to `dist/` using `copyfiles -u 1 "src/templates/**/*" dist`
+2. Copies templates to `dist/` using `cp -r src/templates dist/`
 
 Templates must be in `dist/` for production since the code reads from `path.resolve(__dirname, "../templates/...")` relative to compiled JS files.
 

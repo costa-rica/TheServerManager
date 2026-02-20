@@ -55,7 +55,7 @@ router.patch(
   isAdmin,
   async (req: Request, res: Response) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as { userId: string };
       const { accessServersArray } = req.body;
 
       // Validate required fields
@@ -160,7 +160,7 @@ router.patch(
   isAdmin,
   async (req: Request, res: Response) => {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as { userId: string };
       const { accessPagesArray } = req.body;
 
       // Validate required fields
@@ -319,7 +319,7 @@ router.get("/downloads", async (req: Request, res: Response) => {
 // 🔹 GET /admin/downloads/:filename: Download a specific file
 router.get("/downloads/:filename", async (req: Request, res: Response) => {
   try {
-    const { filename } = req.params;
+    const { filename } = req.params as { filename: string };
 
     // Validate filename (prevent directory traversal)
     if (

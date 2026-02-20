@@ -227,7 +227,7 @@ router.post(
       "[services route] POST /services/control/:serviceFilename/:toggleStatus - Request received"
     );
     try {
-      const { serviceFilename, toggleStatus } = req.params;
+      const { serviceFilename, toggleStatus } = req.params as { serviceFilename: string; toggleStatus: string };
       logger.info(
         `[services route] serviceFilename: ${serviceFilename}, toggleStatus: ${toggleStatus}`
       );
@@ -425,7 +425,7 @@ router.post(
 router.get("/logs/:name", async (req: Request, res: Response) => {
   logger.info("[services route] GET /services/logs/:name - Request received");
   try {
-    const { name } = req.params;
+    const { name } = req.params as { name: string };
     logger.info(`[services route] Log requested for service name: ${name}`);
 
     // Check if running in production/testing/Ubuntu environment
@@ -537,7 +537,7 @@ router.get("/logs/:name", async (req: Request, res: Response) => {
 router.get("/git/:name", async (req: Request, res: Response) => {
   logger.info("[services route] GET /services/git/:name - Request received");
   try {
-    const { name } = req.params;
+    const { name } = req.params as { name: string };
     logger.info(`[services route] Git branches requested for service: ${name}`);
 
     // Check if running in production/testing/Ubuntu environment
@@ -699,7 +699,7 @@ router.post("/git/:name/:action", async (req: Request, res: Response) => {
     "[services route] POST /services/git/:name/:action - Request received"
   );
   try {
-    const { name, action } = req.params;
+    const { name, action } = req.params as { name: string; action: string };
     logger.info(
       `[services route] Git action "${action}" requested for service: ${name}`
     );
@@ -832,7 +832,7 @@ router.post(
       "[services route] POST /services/git/checkout/:name/:branchName - Request received"
     );
     try {
-      const { name, branchName } = req.params;
+      const { name, branchName } = req.params as { name: string; branchName: string };
       logger.info(
         `[services route] Git checkout "${branchName}" requested for service: ${name}`
       );
@@ -954,7 +954,7 @@ router.delete(
       "[services route] DELETE /services/git/delete-branch/:name/:branchName - Request received"
     );
     try {
-      const { name, branchName } = req.params;
+      const { name, branchName } = req.params as { name: string; branchName: string };
       logger.info(
         `[services route] Delete branch "${branchName}" requested for service: ${name}`
       );
@@ -1074,7 +1074,7 @@ router.post("/npm/:name/:action", async (req: Request, res: Response) => {
     "[services route] POST /services/npm/:name/:action - Request received"
   );
   try {
-    const { name, action } = req.params;
+    const { name, action } = req.params as { name: string; action: string };
     logger.info(
       `[services route] npm ${action} requested for service: ${name}`
     );
@@ -1372,7 +1372,7 @@ router.get("/service-file/:filename", async (req: Request, res: Response) => {
     "[services route] GET /services/service-file/:filename - Request received"
   );
   try {
-    const { filename } = req.params;
+    const { filename } = req.params as { filename: string };
     logger.info(`[services route] Requested filename: ${filename}`);
 
     // Check if running in production/testing/Ubuntu environment
@@ -1507,7 +1507,7 @@ router.post("/service-file/:filename", async (req: Request, res: Response) => {
     "[services route] POST /services/service-file/:filename - Request received"
   );
   try {
-    const { filename } = req.params;
+    const { filename } = req.params as { filename: string };
     const { fileContents } = req.body;
 
     logger.info(`[services route] Filename to update: ${filename}`);
@@ -1687,7 +1687,7 @@ router.post("/service-file/:filename", async (req: Request, res: Response) => {
 router.get("/env-file/:name", async (req: Request, res: Response) => {
   logger.info("[services route] GET /services/env-file/:name - Request received");
   try {
-    const { name } = req.params;
+    const { name } = req.params as { name: string };
     logger.info(`[services route] Env file requested for service name: ${name}`);
 
     // Check if running in production/testing/Ubuntu environment
@@ -1830,7 +1830,7 @@ router.get("/env-file/:name", async (req: Request, res: Response) => {
 router.post("/env-file/:name", async (req: Request, res: Response) => {
   logger.info("[services route] POST /services/env-file/:name - Request received");
   try {
-    const { name } = req.params;
+    const { name } = req.params as { name: string };
     const { env, envLocal } = req.body;
 
     logger.info(`[services route] Env file update requested for service name: ${name}`);

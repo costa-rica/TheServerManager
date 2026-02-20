@@ -352,7 +352,7 @@ router.patch(
   authenticateToken,
   async (req: Request, res: Response) => {
     try {
-      const { publicId } = req.params;
+      const { publicId } = req.params as { publicId: string };
       logger.info(
         `[machines.ts] PATCH /machines/${publicId} - Request received`
       );
@@ -585,7 +585,7 @@ router.patch(
 // 🔹 DELETE /machines/:publicId: Delete a machine
 router.delete("/:publicId", authenticateToken, async (req, res) => {
   try {
-    const { publicId } = req.params;
+    const { publicId } = req.params as { publicId: string };
 
     // Validate publicId parameter
     if (!publicId || typeof publicId !== "string" || publicId.trim() === "") {
