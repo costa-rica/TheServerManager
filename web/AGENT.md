@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENT.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -155,7 +155,7 @@ const response = await fetch(
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
-  }
+  },
 );
 ```
 
@@ -340,7 +340,7 @@ const response = await fetch(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
-  }
+  },
 );
 ```
 
@@ -352,7 +352,7 @@ const response = await fetch(
   `${process.env.NEXT_PUBLIC_EXTERNAL_API_BASE_URL}/machines`,
   {
     headers: { Authorization: `Bearer ${token}` },
-  }
+  },
 );
 ```
 

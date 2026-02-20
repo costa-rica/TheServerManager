@@ -110,8 +110,8 @@ TheServerManager/
 | [docs/api/](docs/api/)                                               | Detailed docs for each API router         |
 | [docs/requirements/](docs/requirements/)                             | Feature and error handling requirements   |
 | [docs/server-scripts/](docs/server-scripts/)                         | Scripts deployed to managed servers       |
-| [api/CLAUDE.md](api/CLAUDE.md)                                       | API-specific development notes            |
-| [web/CLAUDE.md](web/CLAUDE.md)                                       | Web-specific development notes            |
+| [api/AGENT.md](api/AGENT.md)                                         | API-specific development notes            |
+| [web/AGENT.md](web/AGENT.md)                                         | Web-specific development notes            |
 
 ---
 

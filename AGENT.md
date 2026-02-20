@@ -1,10 +1,10 @@
-# CLAUDE.md
+# AGENT.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Monorepo Structure
 
-Two independent sub-projects, each with their own `node_modules`, `package.json`, and `CLAUDE.md`:
+Two independent sub-projects, each with their own `node_modules`, `package.json`, and `AGENT.md`:
 
 ```
 TheServerManager/
@@ -17,6 +17,7 @@ There is no root `package.json`. All commands must be run from within `api/` or 
 ## Development Commands
 
 **API** (`cd api/`):
+
 ```bash
 npm run dev     # nodemon + ts-node, watches src/
 npm run build   # tsc + copies templates to dist/
@@ -26,6 +27,7 @@ npm run test:watch
 ```
 
 **Web** (`cd web/`):
+
 ```bash
 npm run dev     # Next.js dev server on :${PORT:-3001}
 npm run build   # Production build
@@ -41,10 +43,10 @@ Both projects use the `PORT` environment variable when present; otherwise they d
 
 The web frontend never calls the API directly from the browser for auth — it proxies through Next.js API routes (`web/src/app/api/auth/`). All other API calls are made client-side using a Bearer token from Redux state.
 
-| Context | Variable | Used by |
-|---|---|---|
-| Server-side (Next.js routes) | `NEXT_PUBLIC_INTERNAL_API_BASE_URL` | `/api/auth/*` routes |
-| Client-side (browser) | `NEXT_PUBLIC_EXTERNAL_API_BASE_URL` | Component fetch calls |
+| Context                      | Variable                            | Used by               |
+| ---------------------------- | ----------------------------------- | --------------------- |
+| Server-side (Next.js routes) | `NEXT_PUBLIC_INTERNAL_API_BASE_URL` | `/api/auth/*` routes  |
+| Client-side (browser)        | `NEXT_PUBLIC_EXTERNAL_API_BASE_URL` | Component fetch calls |
 
 This split exists because when both run on the same server, the server-side code cannot reach the public domain via NAT hairpinning.
 
@@ -77,12 +79,14 @@ Both projects connect to the same MongoDB instance. The API reads/writes all col
 Each sub-project has its own `.env` file (gitignored). See `api/.env.example` for required API variables. Key variables:
 
 **API** (`api/.env`):
+
 - `PORT`, `JWT_SECRET`, `MONGODB_URI`, `NODE_ENV`
 - `ADMIN_EMAIL` — JSON array of admin email addresses
 - `PATH_TO_LOGS`, `PROJECT_RESOURCES`
 - Porkbun, Nodemailer credentials for DNS and email features
 
 **Web** (`web/.env`):
+
 - `NEXT_PUBLIC_INTERNAL_API_BASE_URL` — used server-side (e.g. `http://localhost:3000`)
 - `NEXT_PUBLIC_EXTERNAL_API_BASE_URL` — used client-side (public domain)
 - `NEXT_PUBLIC_MODE` — `workstation` for local dev (console logging, prefills login form), `production` for file logging
