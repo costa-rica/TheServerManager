@@ -3,6 +3,7 @@ import path from "path";
 import { exec } from "child_process";
 import { promisify } from "util";
 import logger from "../config/logger";
+import { STAGING_DIR } from "../config/appUser";
 
 const execAsync = promisify(exec);
 
@@ -141,15 +142,15 @@ export async function writeServiceFile(
   const isSystemDirectory = outputPath.startsWith("/etc/systemd/system/");
 
   if (isSystemDirectory) {
-    // Use sudo mv to move file from /home/nick/ to system directory
+    // Use sudo mv to move file from staging directory to system directory
     logger.info(
       `[systemd.ts] Detected system directory, using sudo mv to write file`
     );
 
     try {
-      // First, write content to /home/nick/ directory
+      // First, write content to staging directory
       const filename = path.basename(outputPath);
-      const tmpPath = `/home/nick/${filename}`;
+      const tmpPath = path.join(STAGING_DIR, filename);
       logger.info(`[systemd.ts] Writing temporary file to: ${tmpPath}`);
       await fs.writeFile(tmpPath, content, "utf-8");
       logger.info(`[systemd.ts] Successfully wrote temporary file to: ${tmpPath}`);

@@ -2,10 +2,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import logger from "../config/logger";
+import { APPLICATIONS_DIR } from "../config/appUser";
 
 const execAsync = promisify(exec);
-
-const BASE_APPLICATIONS_PATH = "/home/nick/applications";
 
 /**
  * Execute a git command in the specified project directory
@@ -22,7 +21,7 @@ export async function executeGitCommand(
   stderr: string;
   error?: string;
 }> {
-  const projectPath = path.join(BASE_APPLICATIONS_PATH, projectName);
+  const projectPath = path.join(APPLICATIONS_DIR, projectName);
   const command = `cd "${projectPath}" && git ${gitCommand}`;
 
   logger.info(`[git.ts] Executing git command: ${command}`);

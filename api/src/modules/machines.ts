@@ -2,6 +2,7 @@ import os from "os";
 import fs from "fs/promises";
 import path from "path";
 import logger from "../config/logger";
+import { SYSTEMCTL_CSV_PATH } from "../config/appUser";
 
 // Helper function to get machine name and local IP address
 function getMachineInfo(): { machineName: string; localIpAddress: string } {
@@ -321,12 +322,12 @@ async function getServicesNameAndValidateServiceFile(service: any): Promise<void
 }
 
 /**
- * Reads and parses the nick-systemctl.csv file
+ * Reads and parses the systemctl CSV file
  * @param csvPath - Path to the CSV file
  * @returns Array of unit filenames from the CSV
  * @throws Error if file doesn't exist or can't be read
  */
-async function readNickSystemctlCsv(csvPath: string): Promise<string[]> {
+async function readSystemctlCsv(csvPath: string): Promise<string[]> {
 	// Check if CSV file exists and is accessible
 	try {
 		await fs.access(csvPath);
@@ -528,18 +529,16 @@ async function extractPortFromServiceFile(serviceFileName: string): Promise<numb
 }
 
 /**
- * Main function to build services array from nick-systemctl.csv
+ * Main function to build services array from the systemctl CSV file
  * @returns Array of service objects with filename, port (optional), and filenameTimer (optional)
  */
-async function buildServicesArrayFromNickSystemctl(): Promise<Array<{
+async function buildServicesArrayFromSystemctl(): Promise<Array<{
 	filename: string;
 	port?: number;
 	filenameTimer?: string;
 }>> {
-	const csvPath = "/home/nick/nick-systemctl.csv";
-
 	// Step 1: Read CSV and extract units
-	const units = await readNickSystemctlCsv(csvPath);
+	const units = await readSystemctlCsv(SYSTEMCTL_CSV_PATH);
 
 	// Step 2: Build service map and validate no orphaned timers
 	const serviceMap = buildServiceMapFromCsv(units);
@@ -583,5 +582,5 @@ async function buildServicesArrayFromNickSystemctl(): Promise<Array<{
 export {
 	getMachineInfo,
 	getServicesNameAndValidateServiceFile,
-	buildServicesArrayFromNickSystemctl
+	buildServicesArrayFromSystemctl
 };

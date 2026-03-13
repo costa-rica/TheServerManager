@@ -2,10 +2,9 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import path from "path";
 import logger from "../config/logger";
+import { APPLICATIONS_DIR } from "../config/appUser";
 
 const execAsync = promisify(exec);
-
-const BASE_APPLICATIONS_PATH = "/home/nick/applications";
 
 /**
  * Parse npm command output to extract warnings
@@ -62,7 +61,7 @@ function parseFailureReason(error: any, stderr: string): string {
 export async function npmInstall(
   projectName: string
 ): Promise<{ status: "success" | "fail"; warnings: string; failureReason: string | null }> {
-  const projectPath = path.join(BASE_APPLICATIONS_PATH, projectName);
+  const projectPath = path.join(APPLICATIONS_DIR, projectName);
   const command = `cd "${projectPath}" && npm install`;
 
   logger.info(`[npm.ts] Executing npm install for: ${projectName}`);
@@ -114,7 +113,7 @@ export async function npmInstall(
 export async function npmBuild(
   projectName: string
 ): Promise<{ status: "success" | "fail"; warnings: string; failureReason: string | null }> {
-  const projectPath = path.join(BASE_APPLICATIONS_PATH, projectName);
+  const projectPath = path.join(APPLICATIONS_DIR, projectName);
   const command = `cd "${projectPath}" && npm run build`;
 
   logger.info(`[npm.ts] Executing npm run build for: ${projectName}`);

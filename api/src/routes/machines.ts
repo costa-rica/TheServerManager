@@ -7,7 +7,7 @@ import { checkBodyReturnMissing } from "../modules/common";
 import {
   getMachineInfo,
   getServicesNameAndValidateServiceFile,
-  buildServicesArrayFromNickSystemctl,
+  buildServicesArrayFromSystemctl,
 } from "../modules/machines";
 import { authenticateToken } from "../modules/authentication";
 import logger from "../config/logger";
@@ -103,7 +103,7 @@ router.get(
         "[machines.ts] GET /machines/check-nick-systemctl - Building services array from nick-systemctl.csv"
       );
 
-      const servicesArray = await buildServicesArrayFromNickSystemctl();
+      const servicesArray = await buildServicesArrayFromSystemctl();
 
       logger.info(
         `[machines.ts] Successfully built services array with ${servicesArray.length} service(s)`
