@@ -12,6 +12,7 @@ import {
 } from "../modules/nginxParseConfig";
 import { getMachineInfo } from "../modules/machines";
 import { createNginxConfigFromTemplate } from "../modules/nginx";
+import { STAGING_DIR } from "../config/appUser";
 import { generateNginxScanReport } from "../modules/nginxReports";
 import logger from "../config/logger";
 import mongoose from "mongoose";
@@ -632,7 +633,7 @@ router.post("/config-file/:nginxFilePublicId", async (req: Request, res: Respons
     const nginxFilePath = path.join(config.storeDirectory, fileName);
     const backupFileName = `${fileName}.backup.${Date.now()}`;
     const backupFilePath = path.join(config.storeDirectory, backupFileName);
-    const tmpFilePath = path.join("/home/nick", fileName);
+    const tmpFilePath = path.join(STAGING_DIR, fileName);
 
     logger.info(`📝 Updating nginx config file: ${nginxFilePath}`);
     logger.info(`📝 Backup path: ${backupFilePath}`);
@@ -674,7 +675,7 @@ router.post("/config-file/:nginxFilePublicId", async (req: Request, res: Respons
         }
       }
 
-      // Step 2: Write new content to /home/nick/ (no sudo needed)
+      // Step 2: Write new content to staging directory (no sudo needed)
       try {
         logger.info(`✍️  Writing new content to temp file: ${tmpFilePath}`);
         logger.info(`✍️  Content length: ${content.length} characters`);
@@ -701,7 +702,7 @@ router.post("/config-file/:nginxFilePublicId", async (req: Request, res: Respons
       // Step 3: Move new file to nginx directory using sudo mv
       try {
         // IMPORTANT: Destination must be directory (with trailing slash), not full file path
-        // This matches the sudoers rule: /usr/bin/mv /home/nick/* /etc/nginx/sites-available/
+        // This matches the sudoers rule: /usr/bin/mv <STAGING_DIR>/* /etc/nginx/sites-available/
         const mvCommand = `sudo mv "${tmpFilePath}" "${config.storeDirectory}/"`;
         logger.info(`📦 Executing: ${mvCommand}`);
         await execAsync(mvCommand);

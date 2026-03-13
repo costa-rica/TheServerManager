@@ -30,6 +30,12 @@ import {
   VALID_TIMER_TEMPLATES,
   type TemplateVariables,
 } from "../modules/systemd";
+import {
+  STAGING_DIR,
+  APP_USER,
+  APP_USER_HOME,
+  APP_USER_GROUP,
+} from "../config/appUser";
 import logger from "../config/logger";
 
 const execAsync = promisify(exec);
@@ -1285,6 +1291,9 @@ router.post("/make-service-file", async (req: Request, res: Response) => {
       project_name_lowercase,
       python_env_name: variables.python_env_name,
       port: variables.port,
+      user_home: APP_USER_HOME,
+      user: APP_USER,
+      group: APP_USER_GROUP,
     };
 
     logger.info(
@@ -1624,8 +1633,8 @@ router.post("/service-file/:filename", async (req: Request, res: Response) => {
       });
     }
 
-    // Write file to /home/nick/ first
-    const tmpPath = `/home/nick/${filename}`;
+    // Write file to staging directory first, then sudo mv to system directory
+    const tmpPath = path.join(STAGING_DIR, filename);
     logger.info(`[services route] Writing temporary file to: ${tmpPath}`);
     await fs.writeFile(tmpPath, fileContents, "utf-8");
     logger.info(
