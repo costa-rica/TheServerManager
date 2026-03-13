@@ -18,15 +18,15 @@ Reference: [ASSESSMENT_LIMITED_USER.md](./ASSESSMENT_LIMITED_USER.md)
 Created centralized config module that derives all user-specific paths from `APP_USER`.
 
 - [x] Create `src/config/appUser.ts` (commit `7801c0c`)
-- [ ] Update `STAGING_DIR` to read from `process.env.STAGING_DIR` env var instead of deriving from `APP_USER_HOME`
+- [x] Update `STAGING_DIR` to read from `process.env.STAGING_DIR` env var instead of deriving from `APP_USER_HOME`
   - Default: `${APP_USER_HOME}/project_resources/TheServerManager/staging`
   - Example for limited_user: `/home/limited_user/project_resources/TheServerManager/staging/`
   - Example for nick (legacy): `/home/nick/project_resources/TheServerManager/staging/`
-- [ ] Add `APP_USER` and `STAGING_DIR` to `api/.env.example` with documentation comments
-- [ ] Update `src/modules/onStartUp.ts`:
+- [x] Add `APP_USER` and `STAGING_DIR` to `api/.env.example` with documentation comments
+- [x] Update `src/modules/onStartUp.ts`:
   - Import `STAGING_DIR` from `../config/appUser`
   - Add `STAGING_DIR` to the `pathsToCheck` array in `verifyCheckDirectoryExists()` so the staging directory is auto-created on startup
-- [ ] Update `tests/modules/appUser.test.ts`:
+- [x] Update `tests/modules/appUser.test.ts`:
   - Test: defaults to `"nick"` when `APP_USER` is not set
   - Test: derives correct paths for `APP_USER=nick`
   - Test: derives correct paths for `APP_USER=limited_user`
@@ -34,91 +34,91 @@ Created centralized config module that derives all user-specific paths from `APP
   - Test: `STAGING_DIR` reflects `process.env.STAGING_DIR` directly when set (not derived from `APP_USER_HOME`)
   - Test: all exported paths are absolute (start with `/`)
   - Fix existing assertions: `STAGING_DIR` should equal the derived default, not `APP_USER_HOME`
-- [ ] Run tests: `npx jest tests/modules/appUser.test.ts`
-- [ ] Commit: "feat: update appUser config with dedicated STAGING_DIR and startup dir creation"
+- [x] Run tests: `npx jest tests/modules/appUser.test.ts`
+- [x] Commit: "feat: update appUser config with dedicated STAGING_DIR and startup dir creation"
 
 ---
 
-## Phase 2: Template Placeholder Expansion
+## Phase 2: Template Placeholder Expansion ✅ COMPLETE
 
 Add `{{USER_HOME}}`, `{{USER}}`, and `{{GROUP}}` placeholders to the template system.
 
-- [ ] Update `TemplateVariables` interface in `src/modules/systemd.ts`:
+- [x] Update `TemplateVariables` interface in `src/modules/systemd.ts`:
   - Add `user_home?: string`
   - Add `user?: string`
   - Add `group?: string`
-- [ ] Update `replaceTemplatePlaceholders()` in `src/modules/systemd.ts` to replace `{{USER_HOME}}`, `{{USER}}`, `{{GROUP}}`
-- [ ] Create `tests/modules/systemd.test.ts`:
+- [x] Update `replaceTemplatePlaceholders()` in `src/modules/systemd.ts` to replace `{{USER_HOME}}`, `{{USER}}`, `{{GROUP}}`
+- [x] Create `tests/modules/systemd.test.ts`:
   - Test: `{{USER_HOME}}` replaced correctly in template content
   - Test: `{{USER}}` replaced correctly in template content
   - Test: `{{GROUP}}` replaced correctly in template content
   - Test: all placeholders replaced together in a realistic template string
   - Test: missing optional variables leave placeholders untouched (existing behavior preserved)
   - Test: existing placeholders (`{{PROJECT_NAME}}`, `{{PORT}}`, etc.) still work
-- [ ] Run tests: `npx jest tests/modules/systemd.test.ts`
-- [ ] Commit: "feat: add USER_HOME, USER, GROUP template placeholders"
+- [x] Run tests: `npx jest tests/modules/systemd.test.ts`
+- [x] Commit: "feat: add USER_HOME, USER, GROUP template placeholders"
 
 ---
 
-## Phase 3: Update Service File Templates
+## Phase 3: Update Service File Templates ✅ COMPLETE
 
 Replace hardcoded `/home/nick/` and `User=nick` in all systemd service templates. Add missing `User=` directive to templates that lack it.
 
-- [ ] Update `src/templates/systemdServiceFiles/expressjs.service`:
+- [x] Update `src/templates/systemdServiceFiles/expressjs.service`:
   - `User={{USER}}`, `Group={{GROUP}}`
   - `WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}`
   - `EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env`
-- [ ] Update `src/templates/systemdServiceFiles/nextjs.service` (same pattern, uses `.env.local`)
-- [ ] Update `src/templates/systemdServiceFiles/flask.service`:
-  - Add missing `User={{USER}}` (currently only has `Group=nick`)
+- [x] Update `src/templates/systemdServiceFiles/nextjs.service` (same pattern, uses `.env.local`)
+- [x] Update `src/templates/systemdServiceFiles/flask.service`:
+  - Add missing `User={{USER}}` (was `User=app_runner`)
   - `Group={{GROUP}}`
   - Same path replacements plus `Environment="PATH={{USER_HOME}}/environments/..."`
   - `ExecStart={{USER_HOME}}/environments/...`
-- [ ] Update `src/templates/systemdServiceFiles/fastapi.service` (same as flask — also missing `User=`)
-- [ ] Update `src/templates/systemdServiceFiles/pythonscript.service` (same as flask)
-- [ ] Update `src/templates/systemdServiceFiles/nodejsscript.service` (also missing `User=`, add `User={{USER}}`)
-- [ ] Timer templates (`nodejsscript.timer`, `pythonscript.timer`): No changes needed — they only use `{{PROJECT_NAME}}` and `{{PROJECT_NAME_LOWERCASE}}`, no hardcoded paths
-- [ ] Add tests to `tests/modules/systemd.test.ts`:
+- [x] Update `src/templates/systemdServiceFiles/fastapi.service` (same as flask — was `User=app_runner`)
+- [x] Update `src/templates/systemdServiceFiles/pythonscript.service` (same as flask)
+- [x] Update `src/templates/systemdServiceFiles/nodejsscript.service` (was `User=app_runner`, added `User={{USER}}`)
+- [x] Timer templates (`nodejsscript.timer`, `pythonscript.timer`): No changes needed — they only use `{{PROJECT_NAME}}` and `{{PROJECT_NAME_LOWERCASE}}`, no hardcoded paths
+- [x] Add tests to `tests/modules/systemd.test.ts`:
   - Test: `readTemplateFile()` for each service template returns content with `{{USER_HOME}}` (no hardcoded `/home/nick`)
   - Test: `readTemplateFile()` for each service template returns content with `User={{USER}}` and `Group={{GROUP}}`
   - Test: `generateServiceFile()` with nick variables produces a valid service file with `/home/nick/` paths
   - Test: `generateServiceFile()` with limited_user variables produces a valid service file with `/home/limited_user/` paths
   - (Note: `generateServiceFile` calls `writeServiceFile` which touches the filesystem — mock `fs.writeFile` and `execAsync` for these tests)
-- [ ] Run tests: `npx jest tests/modules/systemd.test.ts`
-- [ ] Commit: "refactor: parameterize service file templates with USER_HOME, USER, GROUP"
+- [x] Run tests: `npx jest tests/modules/systemd.test.ts`
+- [x] Commit: "refactor: parameterize service file templates with USER_HOME, USER, GROUP"
 
 ---
 
-## Phase 4: Update Source Modules to Use Config
+## Phase 4: Update Source Modules to Use Config ✅ COMPLETE
 
 Replace hardcoded paths in source modules with imports from `appUser` config.
 
-- [ ] Update `src/modules/git.ts`:
+- [x] Update `src/modules/git.ts`:
   - Remove `const BASE_APPLICATIONS_PATH = "/home/nick/applications"`
   - Import `APPLICATIONS_DIR` from `../config/appUser`
   - Use `APPLICATIONS_DIR` in place of `BASE_APPLICATIONS_PATH`
-- [ ] Update `src/modules/npm.ts`:
+- [x] Update `src/modules/npm.ts`:
   - Same change as git.ts
-- [ ] Update `src/modules/machines.ts`:
+- [x] Update `src/modules/machines.ts`:
   - Remove hardcoded `/home/nick/nick-systemctl.csv`
   - Import `SYSTEMCTL_CSV_PATH` from `../config/appUser`
   - Rename `buildServicesArrayFromNickSystemctl` to `buildServicesArrayFromSystemctl`
   - Rename `readNickSystemctlCsv` to `readSystemctlCsv`
   - Update the export at the bottom of the file accordingly
-- [ ] Update callers of renamed functions:
-  - Update `src/routes/services.ts` (or wherever `buildServicesArrayFromNickSystemctl` is imported) to use the new name `buildServicesArrayFromSystemctl`
-- [ ] Update `src/modules/systemd.ts`:
+- [x] Update callers of renamed functions:
+  - Update `src/routes/machines.ts` to use the new name `buildServicesArrayFromSystemctl`
+- [x] Update `src/modules/systemd.ts`:
   - Import `STAGING_DIR` from `../config/appUser`
   - Replace `const tmpPath = /home/nick/${filename}` with `path.join(STAGING_DIR, filename)`
   - Update comments that reference `/home/nick/` to reference `STAGING_DIR`
-- [ ] Create `tests/modules/git.test.ts`:
+- [x] Create `tests/modules/git.test.ts`:
   - Test: git module uses config-derived applications path (mock `execAsync`, verify command includes correct path)
   - Test with `APP_USER=nick`: command references `/home/nick/applications`
   - Test with `APP_USER=limited_user`: command references `/home/limited_user/applications`
-- [ ] Create `tests/modules/npm.test.ts`:
+- [x] Create `tests/modules/npm.test.ts`:
   - Test: npm module uses config-derived applications path (same pattern as git tests)
-- [ ] Run tests: `npx jest tests/modules/`
-- [ ] Commit: "refactor: replace hardcoded paths in modules with appUser config"
+- [x] Run tests: `npx jest tests/modules/`
+- [x] Commit: "refactor: replace hardcoded paths in modules with appUser config"
 
 ---
 
