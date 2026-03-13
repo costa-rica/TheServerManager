@@ -6,12 +6,12 @@ StartLimitBurst=5
 
 [Service]
 Type=simple
-User=nick
-Group=nick
-WorkingDirectory=/home/nick/applications/{{PROJECT_NAME}}
+User={{USER}}
+Group={{GROUP}}
+WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}
 Environment="NODE_ENV=production"
 Environment="PATH=/usr/bin:/usr/local/bin"
-EnvironmentFile=/home/nick/applications/{{PROJECT_NAME}}/.env
+EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env
 ExecStart=/usr/bin/node dist/server.js
 # For APIs
 Restart=on-failure

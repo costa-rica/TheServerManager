@@ -1,4 +1,17 @@
-import { replaceTemplatePlaceholders, type TemplateVariables } from "../../src/modules/systemd";
+import { replaceTemplatePlaceholders, readTemplateFile, generateServiceFile, type TemplateVariables } from "../../src/modules/systemd";
+import fs from "fs/promises";
+import path from "path";
+
+jest.mock("fs/promises");
+
+const SERVICE_TEMPLATES = [
+  "expressjs.service",
+  "flask.service",
+  "fastapi.service",
+  "nextjs.service",
+  "pythonscript.service",
+  "nodejsscript.service",
+];
 
 describe("replaceTemplatePlaceholders", () => {
   it("replaces {{USER_HOME}} correctly", () => {
@@ -81,6 +94,123 @@ describe("replaceTemplatePlaceholders", () => {
     );
     expect(result).toBe(
       "/home/nick/applications/App\n/home/nick/environments/App"
+    );
+  });
+});
+
+describe("readTemplateFile - service templates have no hardcoded paths", () => {
+  const mockedFs = jest.mocked(fs);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(SERVICE_TEMPLATES)(
+    "%s contains {{USER_HOME}} and not /home/nick",
+    async (templateName) => {
+      const templatePath = path.resolve(
+        __dirname,
+        "../../src/templates/systemdServiceFiles",
+        templateName
+      );
+      // Read the actual file from disk (not mocked) to verify template content
+      const { readFile } = jest.requireActual<typeof import("fs/promises")>(
+        "fs/promises"
+      );
+      const content = await readFile(templatePath, "utf-8");
+
+      expect(content).toContain("{{USER_HOME}}");
+      expect(content).not.toContain("/home/nick");
+    }
+  );
+
+  it.each(SERVICE_TEMPLATES)(
+    "%s contains User={{USER}} and Group={{GROUP}}",
+    async (templateName) => {
+      const templatePath = path.resolve(
+        __dirname,
+        "../../src/templates/systemdServiceFiles",
+        templateName
+      );
+      const { readFile } = jest.requireActual<typeof import("fs/promises")>(
+        "fs/promises"
+      );
+      const content = await readFile(templatePath, "utf-8");
+
+      expect(content).toContain("User={{USER}}");
+      expect(content).toContain("Group={{GROUP}}");
+    }
+  );
+});
+
+describe("generateServiceFile", () => {
+  const mockedFs = jest.mocked(fs);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockedFs.writeFile = jest.fn().mockResolvedValue(undefined);
+  });
+
+  it("generates a service file with /home/nick paths for APP_USER=nick", async () => {
+    const templateName = "expressjs.service";
+    const { readFile } = jest.requireActual<typeof import("fs/promises")>(
+      "fs/promises"
+    );
+    mockedFs.readFile = jest
+      .fn()
+      .mockImplementation((p, enc) => readFile(p as string, enc as "utf-8"));
+
+    const { content } = await generateServiceFile(
+      templateName,
+      {
+        project_name: "MyApp",
+        user_home: "/home/nick",
+        user: "nick",
+        group: "nick",
+      },
+      "/some/output/dir",
+      "myapp.service"
+    );
+
+    expect(content).toContain("User=nick");
+    expect(content).toContain("Group=nick");
+    expect(content).toContain("WorkingDirectory=/home/nick/applications/MyApp");
+    expect(content).toContain(
+      "EnvironmentFile=/home/nick/applications/MyApp/.env"
+    );
+    expect(content).not.toContain("{{USER_HOME}}");
+    expect(content).not.toContain("{{USER}}");
+    expect(content).not.toContain("{{GROUP}}");
+  });
+
+  it("generates a service file with /home/limited_user paths for APP_USER=limited_user", async () => {
+    const templateName = "expressjs.service";
+    const { readFile } = jest.requireActual<typeof import("fs/promises")>(
+      "fs/promises"
+    );
+    mockedFs.readFile = jest
+      .fn()
+      .mockImplementation((p, enc) => readFile(p as string, enc as "utf-8"));
+
+    const { content } = await generateServiceFile(
+      templateName,
+      {
+        project_name: "MyApp",
+        user_home: "/home/limited_user",
+        user: "limited_user",
+        group: "limited_user",
+      },
+      "/some/output/dir",
+      "myapp.service"
+    );
+
+    expect(content).toContain("User=limited_user");
+    expect(content).toContain("Group=limited_user");
+    expect(content).toContain(
+      "WorkingDirectory=/home/limited_user/applications/MyApp"
+    );
+    expect(content).toContain(
+      "EnvironmentFile=/home/limited_user/applications/MyApp/.env"
     );
   });
 });
