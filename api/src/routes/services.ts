@@ -26,6 +26,8 @@ import {
 import { npmInstall, npmBuild } from "../modules/npm";
 import {
   generateServiceFile,
+  resolveSubprojectPath,
+  validateSubprojectName,
   VALID_SERVICE_TEMPLATES,
   VALID_TIMER_TEMPLATES,
   type TemplateVariables,
@@ -1284,6 +1286,28 @@ router.post("/make-service-file", async (req: Request, res: Response) => {
 
     // Auto-generate project_name_lowercase from project_name
     const project_name_lowercase = variables.project_name.toLowerCase();
+    const trimmedSubproject =
+      typeof variables.subproject === "string"
+        ? variables.subproject.trim()
+        : variables.subproject;
+
+    if (trimmedSubproject !== undefined) {
+      const subprojectValidationError =
+        validateSubprojectName(trimmedSubproject);
+
+      if (subprojectValidationError) {
+        return res.status(400).json({
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Request validation failed",
+            details: `Invalid subproject: ${subprojectValidationError}`,
+            status: 400,
+          },
+        });
+      }
+    }
+
+    const subproject_path = resolveSubprojectPath(trimmedSubproject);
 
     // Prepare complete variables object
     const completeVariables: TemplateVariables = {
@@ -1291,6 +1315,7 @@ router.post("/make-service-file", async (req: Request, res: Response) => {
       project_name_lowercase,
       python_env_name: variables.python_env_name,
       port: variables.port,
+      subproject_path,
       user_home: APP_USER_HOME,
       user: APP_USER,
       group: APP_USER_GROUP,

@@ -8,10 +8,10 @@ StartLimitBurst=5
 Type=simple
 User={{USER}}
 Group={{GROUP}}
-WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}
+WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}
 Environment="NODE_ENV=production"
 Environment="PORT={{PORT}}"
-EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env.local
+EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}/.env.local
 Environment="PATH=/usr/bin:/usr/local/bin"
 ExecStart=/usr/bin/npm start
 # For APIs / NextJS

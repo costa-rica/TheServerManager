@@ -43,9 +43,52 @@ export interface TemplateVariables {
   python_env_name?: string;
   port?: number;
   project_name_lowercase?: string;
+  subproject_path?: string;
   user_home?: string;
   user?: string;
   group?: string;
+}
+
+const SUBPROJECT_NAME_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+export function validateSubprojectName(subproject: string): string | null {
+  if (typeof subproject !== "string") {
+    return "subproject must be a string";
+  }
+
+  if (subproject.trim() === "") {
+    return "subproject cannot be empty";
+  }
+
+  if (subproject !== subproject.trim()) {
+    return "subproject cannot start or end with whitespace";
+  }
+
+  if (subproject === "." || subproject === ".." || subproject.includes("..")) {
+    return "subproject cannot contain path traversal";
+  }
+
+  if (
+    subproject.startsWith("/") ||
+    subproject.endsWith("/") ||
+    subproject.includes("/")
+  ) {
+    return "subproject cannot contain slashes";
+  }
+
+  if (!SUBPROJECT_NAME_REGEX.test(subproject)) {
+    return "subproject may only contain letters, numbers, hyphens, and underscores";
+  }
+
+  return null;
+}
+
+export function resolveSubprojectPath(subproject?: string): string {
+  if (!subproject) {
+    return "";
+  }
+
+  return `/${subproject}`;
 }
 
 /**
@@ -89,6 +132,14 @@ export function replaceTemplatePlaceholders(
   // Replace {{USER_HOME}}
   if (variables.user_home) {
     content = content.replace(/\{\{USER_HOME\}\}/g, variables.user_home);
+  }
+
+  // Replace {{SUBPROJECT_PATH}}
+  if (variables.subproject_path !== undefined) {
+    content = content.replace(
+      /\{\{SUBPROJECT_PATH\}\}/g,
+      variables.subproject_path
+    );
   }
 
   // Replace {{USER}}

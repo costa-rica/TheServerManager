@@ -7,9 +7,9 @@ StartLimitBurst=5
 Type=oneshot
 User={{USER}}
 Group={{GROUP}}
-WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}
+WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}
 Environment="PATH={{USER_HOME}}/environments/{{PYTHON_ENV_NAME}}/bin"
-EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env
+EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}/.env
 ExecStart={{USER_HOME}}/environments/{{PYTHON_ENV_NAME}}/bin/python src/main.py
 Restart=on-failure
 RestartSec=10

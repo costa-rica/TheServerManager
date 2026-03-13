@@ -15,53 +15,53 @@ This modification is feasible and low risk in the current codebase. The required
 
 ## Phase 1: API Contract and Path Resolution
 
-- [ ] Update [`api/src/modules/systemd.ts`](/home/limited_user/applications/TheServerManager/api/src/modules/systemd.ts) `TemplateVariables` to support `subproject_path`.
-- [ ] Update [`api/src/modules/systemd.ts`](/home/limited_user/applications/TheServerManager/api/src/modules/systemd.ts) `replaceTemplatePlaceholders()` to replace `{{SUBPROJECT_PATH}}`.
-- [ ] Update [`api/src/routes/services.ts`](/home/limited_user/applications/TheServerManager/api/src/routes/services.ts) to accept optional `variables.subproject`.
-- [ ] Add API-layer validation in [`api/src/routes/services.ts`](/home/limited_user/applications/TheServerManager/api/src/routes/services.ts) so `subproject`, when provided, rejects empty values, `.` / `..`, leading or trailing slashes, path traversal, and characters outside `[a-zA-Z0-9_-]`.
-- [ ] Resolve validated `subproject` input into `subproject_path` as either `""` or `"/<value>"`.
-- [ ] Include `subproject_path` in the generated `completeVariables` object and response payload so the frontend can see what was applied.
-- [ ] Keep backward compatibility: when `subproject` is omitted, generated paths must remain identical to today.
+- [x] Update [`api/src/modules/systemd.ts`](/home/limited_user/applications/TheServerManager/api/src/modules/systemd.ts) `TemplateVariables` to support `subproject_path`.
+- [x] Update [`api/src/modules/systemd.ts`](/home/limited_user/applications/TheServerManager/api/src/modules/systemd.ts) `replaceTemplatePlaceholders()` to replace `{{SUBPROJECT_PATH}}`.
+- [x] Update [`api/src/routes/services.ts`](/home/limited_user/applications/TheServerManager/api/src/routes/services.ts) to accept optional `variables.subproject`.
+- [x] Add API-layer validation in [`api/src/routes/services.ts`](/home/limited_user/applications/TheServerManager/api/src/routes/services.ts) so `subproject`, when provided, rejects empty values, `.` / `..`, leading or trailing slashes, path traversal, and characters outside `[a-zA-Z0-9_-]`.
+- [x] Resolve validated `subproject` input into `subproject_path` as either `""` or `"/<value>"`.
+- [x] Include `subproject_path` in the generated `completeVariables` object and response payload so the frontend can see what was applied.
+- [x] Keep backward compatibility: when `subproject` is omitted, generated paths must remain identical to today.
 
 Phase 1 validation:
-- [ ] Run `cd api && npm test`
+- [x] Run `cd api && npm test`
 - [ ] If Phase 1 validation passes, check off completed Phase 1 items and commit with: `feat: complete Phase 1 of REQUIREMENTS_SUBPROJECT_20260313_TODO.md`
 
 ## Phase 2: Service Template Updates
 
-- [ ] Update [`api/src/templates/systemdServiceFiles/expressjs.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/expressjs.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in project-root paths.
-- [ ] Update [`api/src/templates/systemdServiceFiles/flask.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/flask.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
-- [ ] Update [`api/src/templates/systemdServiceFiles/fastapi.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/fastapi.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
-- [ ] Update [`api/src/templates/systemdServiceFiles/nextjs.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/nextjs.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` while preserving `.env.local`.
-- [ ] Update [`api/src/templates/systemdServiceFiles/nodejsscript.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/nodejsscript.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}`.
-- [ ] Update [`api/src/templates/systemdServiceFiles/pythonscript.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/pythonscript.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
-- [ ] Confirm no `.timer` templates need modification.
+- [x] Update [`api/src/templates/systemdServiceFiles/expressjs.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/expressjs.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in project-root paths.
+- [x] Update [`api/src/templates/systemdServiceFiles/flask.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/flask.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
+- [x] Update [`api/src/templates/systemdServiceFiles/fastapi.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/fastapi.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
+- [x] Update [`api/src/templates/systemdServiceFiles/nextjs.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/nextjs.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` while preserving `.env.local`.
+- [x] Update [`api/src/templates/systemdServiceFiles/nodejsscript.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/nodejsscript.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}`.
+- [x] Update [`api/src/templates/systemdServiceFiles/pythonscript.service`](/home/limited_user/applications/TheServerManager/api/src/templates/systemdServiceFiles/pythonscript.service) to append `{{SUBPROJECT_PATH}}` after `{{PROJECT_NAME}}` in `WorkingDirectory` and `EnvironmentFile`.
+- [x] Confirm no `.timer` templates need modification.
 
 Phase 2 validation:
-- [ ] Run `cd api && npm test`
+- [x] Run `cd api && npm test`
 - [ ] If Phase 2 validation passes, check off completed Phase 2 items and commit with: `feat: complete Phase 2 of REQUIREMENTS_SUBPROJECT_20260313_TODO.md`
 
 ## Phase 3: API Test Coverage
 
-- [ ] Update [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) to cover `{{SUBPROJECT_PATH}}` replacement when a subproject is provided.
-- [ ] Update [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) to cover `{{SUBPROJECT_PATH}}` replacement with an empty string when no subproject is provided.
-- [ ] Update existing `generateServiceFile` tests in [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) so they pass `subproject_path: ""` and assert that no unresolved placeholder remains.
-- [ ] Add template assertions in [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) confirming all `.service` templates contain `{{SUBPROJECT_PATH}}`.
-- [ ] Add or extend API validation tests so invalid `subproject` values such as `../etc`, `/api`, `api/`, and `.` are rejected before template generation.
-- [ ] Add assertions that generated paths do not contain double slashes caused by an empty `subproject_path`.
+- [x] Update [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) to cover `{{SUBPROJECT_PATH}}` replacement when a subproject is provided.
+- [x] Update [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) to cover `{{SUBPROJECT_PATH}}` replacement with an empty string when no subproject is provided.
+- [x] Update existing `generateServiceFile` tests in [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) so they pass `subproject_path: ""` and assert that no unresolved placeholder remains.
+- [x] Add template assertions in [`api/tests/modules/systemd.test.ts`](/home/limited_user/applications/TheServerManager/api/tests/modules/systemd.test.ts) confirming all `.service` templates contain `{{SUBPROJECT_PATH}}`.
+- [x] Add or extend API validation tests so invalid `subproject` values such as `../etc`, `/api`, `api/`, and `.` are rejected before template generation.
+- [x] Add assertions that generated paths do not contain double slashes caused by an empty `subproject_path`.
 
 Phase 3 validation:
-- [ ] Run `cd api && npm test`
+- [x] Run `cd api && npm test`
 - [ ] If Phase 3 validation passes, check off completed Phase 3 items and commit with: `feat: complete Phase 3 of REQUIREMENTS_SUBPROJECT_20260313_TODO.md`
 
 ## Phase 4: Web Form and Frontend Contract
 
-- [ ] Update [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) to add `subproject` state for the create-service form.
-- [ ] Add a new optional form field in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) after Project Name and before Python Environment Name.
-- [ ] Use helper text in the new field that explains it is for monorepo subdirectories such as `api`, `web`, or `worker`.
-- [ ] Update the request body in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) so `variables.subproject` is only sent when non-empty after trimming.
-- [ ] Update the `MakeServiceFileResponse` type in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) to include `subproject_path`.
-- [ ] Reset the new field after a successful create action.
+- [x] Update [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) to add `subproject` state for the create-service form.
+- [x] Add a new optional form field in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) after Project Name and before Python Environment Name.
+- [x] Use helper text in the new field that explains it is for monorepo subdirectories such as `api`, `web`, or `worker`.
+- [x] Update the request body in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) so `variables.subproject` is only sent when non-empty after trimming.
+- [x] Update the `MakeServiceFileResponse` type in [`web/src/components/ui/modal/ModalServicesManager.tsx`](/home/limited_user/applications/TheServerManager/web/src/components/ui/modal/ModalServicesManager.tsx) to include `subproject_path`.
+- [x] Reset the new field after a successful create action.
 - [ ] Confirm the existing create flow still works for single-project repos with the field left blank.
 
 Phase 4 validation:

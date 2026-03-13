@@ -1,4 +1,11 @@
-import { replaceTemplatePlaceholders, readTemplateFile, generateServiceFile, type TemplateVariables } from "../../src/modules/systemd";
+import {
+  replaceTemplatePlaceholders,
+  readTemplateFile,
+  generateServiceFile,
+  resolveSubprojectPath,
+  validateSubprojectName,
+  type TemplateVariables,
+} from "../../src/modules/systemd";
 import fs from "fs/promises";
 import path from "path";
 
@@ -36,6 +43,37 @@ describe("replaceTemplatePlaceholders", () => {
       group: "nick",
     });
     expect(result).toBe("Group=nick");
+  });
+
+  it("replaces {{SUBPROJECT_PATH}} with a subdirectory when provided", () => {
+    const result = replaceTemplatePlaceholders(
+      "WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}",
+      {
+        project_name: "MyApp",
+        user_home: "/home/limited_user",
+        subproject_path: "/api",
+      }
+    );
+
+    expect(result).toBe(
+      "WorkingDirectory=/home/limited_user/applications/MyApp/api"
+    );
+  });
+
+  it("replaces {{SUBPROJECT_PATH}} with an empty string when omitted", () => {
+    const result = replaceTemplatePlaceholders(
+      "WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}",
+      {
+        project_name: "MyApp",
+        user_home: "/home/limited_user",
+        subproject_path: "",
+      }
+    );
+
+    expect(result).toBe(
+      "WorkingDirectory=/home/limited_user/applications/MyApp"
+    );
+    expect(result).not.toContain("//");
   });
 
   it("replaces all new placeholders together in a realistic template string", () => {
@@ -120,6 +158,7 @@ describe("readTemplateFile - service templates have no hardcoded paths", () => {
       const content = await readFile(templatePath, "utf-8");
 
       expect(content).toContain("{{USER_HOME}}");
+      expect(content).toContain("{{SUBPROJECT_PATH}}");
       expect(content).not.toContain("/home/nick");
     }
   );
@@ -164,6 +203,7 @@ describe("generateServiceFile", () => {
       templateName,
       {
         project_name: "MyApp",
+        subproject_path: "",
         user_home: "/home/nick",
         user: "nick",
         group: "nick",
@@ -179,6 +219,7 @@ describe("generateServiceFile", () => {
       "EnvironmentFile=/home/nick/applications/MyApp/.env"
     );
     expect(content).not.toContain("{{USER_HOME}}");
+    expect(content).not.toContain("{{SUBPROJECT_PATH}}");
     expect(content).not.toContain("{{USER}}");
     expect(content).not.toContain("{{GROUP}}");
   });
@@ -196,6 +237,7 @@ describe("generateServiceFile", () => {
       templateName,
       {
         project_name: "MyApp",
+        subproject_path: "",
         user_home: "/home/limited_user",
         user: "limited_user",
         group: "limited_user",
@@ -212,5 +254,38 @@ describe("generateServiceFile", () => {
     expect(content).toContain(
       "EnvironmentFile=/home/limited_user/applications/MyApp/.env"
     );
+    expect(content).not.toContain("{{SUBPROJECT_PATH}}");
+    expect(content).not.toContain("//.env");
   });
+});
+
+describe("subproject helpers", () => {
+  it("resolves a valid subproject to a prefixed path segment", () => {
+    expect(resolveSubprojectPath("api")).toBe("/api");
+  });
+
+  it("resolves an omitted subproject to an empty path segment", () => {
+    expect(resolveSubprojectPath(undefined)).toBe("");
+  });
+
+  it.each([
+    "../etc",
+    "/api",
+    "api/",
+    ".",
+    "..",
+    "api/web",
+    " api",
+    "api ",
+    "worker.job",
+  ])("rejects invalid subproject value %s", (subproject) => {
+    expect(validateSubprojectName(subproject)).not.toBeNull();
+  });
+
+  it.each(["api", "web", "worker_01", "jobs-runner"])(
+    "accepts valid subproject value %s",
+    (subproject) => {
+      expect(validateSubprojectName(subproject)).toBeNull();
+    }
+  );
 });

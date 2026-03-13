@@ -34,6 +34,7 @@ interface MakeServiceFileResponse {
     project_name_lowercase: string;
     python_env_name?: string;
     port?: number;
+    subproject_path?: string;
   };
 }
 
@@ -63,6 +64,7 @@ export const ModalServicesManager: React.FC<ModalServicesManagerProps> = ({
   const [filenameServiceTemplate, setFilenameServiceTemplate] = useState<string>("expressjs.service");
   const [filenameTimerTemplate, setFilenameTimerTemplate] = useState<string>("");
   const [projectName, setProjectName] = useState<string>("");
+  const [subproject, setSubproject] = useState<string>("");
   const [pythonEnvName, setPythonEnvName] = useState<string>("");
   const [port, setPort] = useState<string>("");
 
@@ -124,11 +126,16 @@ export const ModalServicesManager: React.FC<ModalServicesManagerProps> = ({
     try {
       const variables: {
         project_name: string;
+        subproject?: string;
         python_env_name?: string;
         port?: number;
       } = {
         project_name: projectName.trim(),
       };
+
+      if (subproject.trim()) {
+        variables.subproject = subproject.trim();
+      }
 
       if (isPythonTemplate && pythonEnvName.trim()) {
         variables.python_env_name = pythonEnvName.trim();
@@ -200,6 +207,7 @@ export const ModalServicesManager: React.FC<ModalServicesManagerProps> = ({
 
       // Reset form
       setProjectName("");
+      setSubproject("");
       setPythonEnvName("");
       setPort("");
       onClose();
@@ -321,6 +329,26 @@ export const ModalServicesManager: React.FC<ModalServicesManagerProps> = ({
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Used for PROJECT_NAME placeholder, auto-converted to lowercase
                 for filenames
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor="subproject"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Subproject (optional)
+              </label>
+              <input
+                type="text"
+                id="subproject"
+                value={subproject}
+                onChange={(e) => setSubproject(e.target.value)}
+                placeholder="e.g., api, web, worker"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                For monorepos. Leave blank for single-project repos.
               </p>
             </div>
 
