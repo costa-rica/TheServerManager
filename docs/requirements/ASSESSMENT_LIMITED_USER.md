@@ -1,5 +1,9 @@
 # Assessment: Supporting limited_user Applications in TheServerManager API
 
+> **Status: IMPLEMENTED** — Refactor completed 2026-03-13 on branch `dev01_api02`.
+> See [REQUIREMENTS_API_REFACTOR_20260313_TODO.md](./REQUIREMENTS_API_REFACTOR_20260313_TODO.md) for the full implementation record.
+> API deployed and running at https://tsm-api.nn11prod.dashanddata.com/
+
 ## Objective
 
 Determine whether managing applications under `/home/limited_user/` requires a new `api02/` subproject or can be achieved by modifying the existing `api/` subproject.
@@ -62,6 +66,16 @@ It does **not** have a `{{USER_HOME}}` or `{{USER}}` placeholder, but adding one
 #### 4. Machine Model
 
 The `Machine` model already stores per-service metadata in `servicesArray` including `workingDirectory` and `pathToLogs`. This means the database already supports heterogeneous paths -- a service's working directory is read from its service file, not assumed.
+
+## Implementation Notes (vs. Original Proposal)
+
+The refactor was implemented largely as proposed with two key differences:
+
+1. **`APP_USER` env var instead of separate `PATH_SYSTEMCTL_CSV`/`PATH_STAGING_DIR`** — A single `APP_USER` config module (`src/config/appUser.ts`) derives all paths from one variable. `STAGING_DIR` is overridable via env var but defaults to `${APP_USER_HOME}/project_resources/TheServerManager/staging` (a dedicated subdirectory, not `/home/nick/` root).
+
+2. **Sudoers update was required** — The original assessment stated "no sudoers changes are needed." In practice, the new dedicated staging path required adding new sudoers rules permitting `sudo mv` from that path to `/etc/systemd/system/` and `/etc/nginx/sites-available/`.
+
+3. **`User=app_runner` discovered in templates** — flask, fastapi, nextjs, and nodejsscript templates had `User=app_runner` (not `User=nick`). All templates now consistently use `User={{USER}}`.
 
 ## Proposed Modification Plan
 
