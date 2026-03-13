@@ -47,6 +47,7 @@ if (missingVars.length > 0) {
 const nodeEnv = process.env.NODE_ENV!; // Safe to use ! after validation
 const isProduction = nodeEnv === "production";
 const isTesting = nodeEnv === "testing";
+const isTest = nodeEnv === "test";
 const isDevelopment = nodeEnv === "development";
 
 const appName = process.env.NAME_APP!; // Safe to use ! after validation
@@ -63,6 +64,8 @@ if (isProduction) {
   logLevel = "info"; // V04: Info and above in production (error, warn, info, http)
 } else if (isTesting) {
   logLevel = "info"; // V04: Info and above in testing (error, warn, info, http)
+} else if (isTest) {
+  logLevel = "error";
 } else {
   logLevel = "debug"; // V04: All levels in development (debug+)
 }
@@ -109,6 +112,9 @@ if (isDevelopment) {
     })
   );
   logger.add(new winston.transports.Console());
+} else if (isTest) {
+  // Keep Jest output quiet while still providing a transport.
+  logger.add(new winston.transports.Console({ silent: true }));
 } else if (isProduction) {
   // V04 Production: File output only
   logger.add(
@@ -127,6 +133,8 @@ if (isProduction) {
   environmentMode = "production (file output, info+ levels)";
 } else if (isTesting) {
   environmentMode = "testing (console + file output, info+ levels)";
+} else if (isTest) {
+  environmentMode = "test (silent console transport)";
 } else {
   environmentMode = "development (console output, debug+ levels)";
 }

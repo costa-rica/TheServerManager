@@ -7,8 +7,10 @@
     "dev": "nodemon --watch src --exec ts-node src/server.ts",
     "build": "tsc && cp -r src/templates dist/",
     "start": "node dist/server.js",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "npm run test:unit",
+    "test:unit": "jest --runInBand",
+    "test:watch": "jest --watch --testPathIgnorePatterns=/tests/integration/",
+    "test:integration": "jest --runInBand tests/integration --passWithNoTests"
   },
   "keywords": [],
   "author": "",

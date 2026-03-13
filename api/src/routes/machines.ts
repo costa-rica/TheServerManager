@@ -10,6 +10,7 @@ import {
   buildServicesArrayFromSystemctl,
 } from "../modules/machines";
 import { authenticateToken } from "../modules/authentication";
+import { formatMachineForResponse } from "../modules/permissions";
 import logger from "../config/logger";
 
 const router = express.Router();
@@ -148,26 +149,14 @@ router.get("/", authenticateToken, async (req, res) => {
     // Fetch machines based on user permissions
     let machines;
     if (user.isAdmin) {
-      // Admin users see all machines
       machines = await Machine.find();
     } else {
-      // Non-admin users only see machines in their accessServersArray
       machines = await Machine.find({
         publicId: { $in: user.accessServersArray || [] },
       });
     }
 
-    // Map machines to exclude _id field
-    const formattedMachines = machines.map((machine) => ({
-      publicId: machine.publicId,
-      machineName: machine.machineName,
-      urlApiForTsmNetwork: machine.urlApiForTsmNetwork,
-      localIpAddress: machine.localIpAddress,
-      nginxStoragePathOptions: machine.nginxStoragePathOptions,
-      servicesArray: machine.servicesArray,
-      createdAt: machine.createdAt,
-      updatedAt: machine.updatedAt,
-    }));
+    const formattedMachines = machines.map(formatMachineForResponse);
 
     return res.json({ result: true, existingMachines: formattedMachines });
   } catch (error: any) {

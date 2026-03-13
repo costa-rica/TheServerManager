@@ -4,6 +4,7 @@ import { authenticateToken, isAdmin } from "../modules/authentication";
 import { User } from "../models/user";
 import { Machine } from "../models/machine";
 import { checkBodyReturnMissing, isValidPagePath } from "../modules/common";
+import { getInvalidMachinePublicIds } from "../modules/permissions";
 import fs from "fs";
 import path from "path";
 import logger from "../config/logger";
@@ -93,9 +94,9 @@ router.patch(
         });
 
         if (machines.length !== accessServersArray.length) {
-          const foundIds = machines.map((m) => m.publicId);
-          const invalidIds = accessServersArray.filter(
-            (id) => !foundIds.includes(id)
+          const invalidIds = getInvalidMachinePublicIds(
+            accessServersArray,
+            machines
           );
 
           return res.status(400).json({
