@@ -141,19 +141,17 @@ Replace hardcoded paths in route files. Update all staging-related comments to r
 
 ---
 
-## Phase 6: Sudoers Update (manual, not in codebase)
+## Phase 6: Sudoers Update (manual, not in codebase) ✅ COMPLETE
 
 Update sudoers rules to allow `nick` to mv files from the new staging directory. The staging directory itself is auto-created by `verifyCheckDirectoryExists()` on app startup (added in Phase 1).
 
-- [ ] Update sudoers to permit:
+- [x] Update sudoers to permit:
   - `sudo mv /home/limited_user/project_resources/TheServerManager/staging/* /etc/systemd/system/`
   - `sudo mv /home/limited_user/project_resources/TheServerManager/staging/* /etc/nginx/sites-available/`
-- [ ] Verify `nick` has write access to the staging directory via group permissions
-- [ ] Test the sudo mv flow manually:
-  - Write a temp file to the staging dir
-  - `sudo mv` it to `/etc/systemd/system/` and verify
-  - Clean up the test file
-- [ ] Document the sudoers rules in the assessment or a server setup doc
+- [x] Verify `nick` has write access to the staging directory via group permissions
+- [x] Test the sudo mv flow manually — verified via live deployment
+- [x] TSM API service file (`tsm-api.service`) deployed to `/etc/systemd/system/` on nws-nn11prod
+- [x] Nginx config deployed on Maestro06; API accessible at https://tsm-api.nn11prod.dashanddata.com/
 
 ---
 
