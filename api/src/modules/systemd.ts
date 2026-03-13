@@ -42,6 +42,9 @@ export interface TemplateVariables {
   python_env_name?: string;
   port?: number;
   project_name_lowercase?: string;
+  user_home?: string;
+  user?: string;
+  group?: string;
 }
 
 /**
@@ -80,6 +83,21 @@ export function replaceTemplatePlaceholders(
   // Replace {{PORT}}
   if (variables.port !== undefined) {
     content = content.replace(/\{\{PORT\}\}/g, variables.port.toString());
+  }
+
+  // Replace {{USER_HOME}}
+  if (variables.user_home) {
+    content = content.replace(/\{\{USER_HOME\}\}/g, variables.user_home);
+  }
+
+  // Replace {{USER}}
+  if (variables.user) {
+    content = content.replace(/\{\{USER\}\}/g, variables.user);
+  }
+
+  // Replace {{GROUP}}
+  if (variables.group) {
+    content = content.replace(/\{\{GROUP\}\}/g, variables.group);
   }
 
   return content;
