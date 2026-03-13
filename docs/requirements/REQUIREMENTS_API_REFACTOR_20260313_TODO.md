@@ -23,14 +23,19 @@ Created centralized config module that derives all user-specific paths from `APP
   - Example for limited_user: `/home/limited_user/project_resources/TheServerManager/staging/`
   - Example for nick (legacy): `/home/nick/project_resources/TheServerManager/staging/`
 - [ ] Add `APP_USER` and `STAGING_DIR` to `api/.env.example` with documentation comments
+- [ ] Update `src/modules/onStartUp.ts`:
+  - Import `STAGING_DIR` from `../config/appUser`
+  - Add `STAGING_DIR` to the `pathsToCheck` array in `verifyCheckDirectoryExists()` so the staging directory is auto-created on startup
 - [ ] Update `tests/modules/appUser.test.ts`:
   - Test: defaults to `"nick"` when `APP_USER` is not set
   - Test: derives correct paths for `APP_USER=nick`
   - Test: derives correct paths for `APP_USER=limited_user`
   - Test: `STAGING_DIR` uses env var when set, falls back to derived default
+  - Test: `STAGING_DIR` reflects `process.env.STAGING_DIR` directly when set (not derived from `APP_USER_HOME`)
   - Test: all exported paths are absolute (start with `/`)
+  - Fix existing assertions: `STAGING_DIR` should equal the derived default, not `APP_USER_HOME`
 - [ ] Run tests: `npx jest tests/modules/appUser.test.ts`
-- [ ] Commit: "feat: update appUser config with dedicated STAGING_DIR"
+- [ ] Commit: "feat: update appUser config with dedicated STAGING_DIR and startup dir creation"
 
 ---
 
@@ -57,23 +62,25 @@ Add `{{USER_HOME}}`, `{{USER}}`, and `{{GROUP}}` placeholders to the template sy
 
 ## Phase 3: Update Service File Templates
 
-Replace hardcoded `/home/nick/` and `User=nick` in all systemd service/timer templates.
+Replace hardcoded `/home/nick/` and `User=nick` in all systemd service templates. Add missing `User=` directive to templates that lack it.
 
 - [ ] Update `src/templates/systemdServiceFiles/expressjs.service`:
   - `User={{USER}}`, `Group={{GROUP}}`
   - `WorkingDirectory={{USER_HOME}}/applications/{{PROJECT_NAME}}`
   - `EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env`
-- [ ] Update `src/templates/systemdServiceFiles/nextjs.service` (same pattern)
+- [ ] Update `src/templates/systemdServiceFiles/nextjs.service` (same pattern, uses `.env.local`)
 - [ ] Update `src/templates/systemdServiceFiles/flask.service`:
-  - Same as above plus `Environment="PATH={{USER_HOME}}/environments/..."`
+  - Add missing `User={{USER}}` (currently only has `Group=nick`)
+  - `Group={{GROUP}}`
+  - Same path replacements plus `Environment="PATH={{USER_HOME}}/environments/..."`
   - `ExecStart={{USER_HOME}}/environments/...`
-- [ ] Update `src/templates/systemdServiceFiles/fastapi.service` (same as flask)
+- [ ] Update `src/templates/systemdServiceFiles/fastapi.service` (same as flask — also missing `User=`)
 - [ ] Update `src/templates/systemdServiceFiles/pythonscript.service` (same as flask)
-- [ ] Update `src/templates/systemdServiceFiles/nodejsscript.service`
-- [ ] Update `src/templates/systemdServiceFiles/nodejsscript.timer`
-- [ ] Update `src/templates/systemdServiceFiles/pythonscript.timer`
+- [ ] Update `src/templates/systemdServiceFiles/nodejsscript.service` (also missing `User=`, add `User={{USER}}`)
+- [ ] Timer templates (`nodejsscript.timer`, `pythonscript.timer`): No changes needed — they only use `{{PROJECT_NAME}}` and `{{PROJECT_NAME_LOWERCASE}}`, no hardcoded paths
 - [ ] Add tests to `tests/modules/systemd.test.ts`:
-  - Test: `readTemplateFile()` for each template returns content with `{{USER_HOME}}` (no hardcoded `/home/nick`)
+  - Test: `readTemplateFile()` for each service template returns content with `{{USER_HOME}}` (no hardcoded `/home/nick`)
+  - Test: `readTemplateFile()` for each service template returns content with `User={{USER}}` and `Group={{GROUP}}`
   - Test: `generateServiceFile()` with nick variables produces a valid service file with `/home/nick/` paths
   - Test: `generateServiceFile()` with limited_user variables produces a valid service file with `/home/limited_user/` paths
   - (Note: `generateServiceFile` calls `writeServiceFile` which touches the filesystem — mock `fs.writeFile` and `execAsync` for these tests)
@@ -95,9 +102,15 @@ Replace hardcoded paths in source modules with imports from `appUser` config.
 - [ ] Update `src/modules/machines.ts`:
   - Remove hardcoded `/home/nick/nick-systemctl.csv`
   - Import `SYSTEMCTL_CSV_PATH` from `../config/appUser`
+  - Rename `buildServicesArrayFromNickSystemctl` to `buildServicesArrayFromSystemctl`
+  - Rename `readNickSystemctlCsv` to `readSystemctlCsv`
+  - Update the export at the bottom of the file accordingly
+- [ ] Update callers of renamed functions:
+  - Update `src/routes/services.ts` (or wherever `buildServicesArrayFromNickSystemctl` is imported) to use the new name `buildServicesArrayFromSystemctl`
 - [ ] Update `src/modules/systemd.ts`:
-  - Replace `const tmpPath = /home/nick/${filename}` with import from `STAGING_DIR`
-  - Use `path.join(STAGING_DIR, filename)` for staging paths
+  - Import `STAGING_DIR` from `../config/appUser`
+  - Replace `const tmpPath = /home/nick/${filename}` with `path.join(STAGING_DIR, filename)`
+  - Update comments that reference `/home/nick/` to reference `STAGING_DIR`
 - [ ] Create `tests/modules/git.test.ts`:
   - Test: git module uses config-derived applications path (mock `execAsync`, verify command includes correct path)
   - Test with `APP_USER=nick`: command references `/home/nick/applications`
@@ -111,12 +124,17 @@ Replace hardcoded paths in source modules with imports from `appUser` config.
 
 ## Phase 5: Update Routes to Use Config
 
-Replace hardcoded paths in route files.
+Replace hardcoded paths in route files. Update all staging-related comments to reference `STAGING_DIR`.
 
 - [ ] Update `src/routes/services.ts`:
+  - Import `STAGING_DIR` from `../config/appUser`
   - Replace `const tmpPath = /home/nick/${filename}` with `path.join(STAGING_DIR, filename)`
+  - Update comment `// Write file to /home/nick/ first` to reference STAGING_DIR
 - [ ] Update `src/routes/nginx.ts`:
+  - Import `STAGING_DIR` from `../config/appUser`
   - Replace `path.join("/home/nick", fileName)` with `path.join(STAGING_DIR, fileName)`
+  - Update comment `// Step 2: Write new content to /home/nick/ (no sudo needed)` to reference STAGING_DIR
+  - Update comment `// This matches the sudoers rule: /usr/bin/mv /home/nick/* /etc/nginx/sites-available/` to reference the STAGING_DIR-based sudoers rule
 - [ ] Wire template generation calls in `src/routes/services.ts` to pass `user_home`, `user`, `group` from appUser config into `TemplateVariables`
 - [ ] Add tests to `tests/modules/systemd.test.ts` or create `tests/routes/services.test.ts`:
   - Test: service creation route passes correct user/group/home to template variables
@@ -127,14 +145,12 @@ Replace hardcoded paths in route files.
 
 ## Phase 6: Sudoers Update (manual, not in codebase)
 
-Update sudoers rules to allow `nick` to mv files from the new staging directory.
+Update sudoers rules to allow `nick` to mv files from the new staging directory. The staging directory itself is auto-created by `verifyCheckDirectoryExists()` on app startup (added in Phase 1).
 
 - [ ] Update sudoers to permit:
   - `sudo mv /home/limited_user/project_resources/TheServerManager/staging/* /etc/systemd/system/`
   - `sudo mv /home/limited_user/project_resources/TheServerManager/staging/* /etc/nginx/sites-available/`
-- [ ] Ensure the staging directory exists and is writable by `nick`:
-  - `mkdir -p /home/limited_user/project_resources/TheServerManager/staging`
-  - Verify `nick` has write access via group permissions
+- [ ] Verify `nick` has write access to the staging directory via group permissions
 - [ ] Test the sudo mv flow manually:
   - Write a temp file to the staging dir
   - `sudo mv` it to `/etc/systemd/system/` and verify
