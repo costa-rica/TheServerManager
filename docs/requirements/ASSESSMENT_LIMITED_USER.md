@@ -30,14 +30,14 @@ The core difference is **which user account and home directory** an application 
 
 #### 1. Hardcoded `/home/nick/` Paths (5 locations)
 
-| File | Line | Current Value | Purpose |
-|------|------|---------------|---------|
-| `src/modules/git.ts` | 8 | `BASE_APPLICATIONS_PATH = "/home/nick/applications"` | Git operations on project dirs |
-| `src/modules/npm.ts` | 8 | `BASE_APPLICATIONS_PATH = "/home/nick/applications"` | npm install/build in project dirs |
-| `src/modules/machines.ts` | 539 | `csvPath = "/home/nick/nick-systemctl.csv"` | Systemd unit list |
-| `src/modules/systemd.ts` | 134 | `tmpPath = /home/nick/${filename}` | Staging dir for sudo mv |
-| `src/routes/services.ts` | 1628 | `tmpPath = /home/nick/${filename}` | Staging dir for service file updates |
-| `src/routes/nginx.ts` | 635 | `tmpFilePath = path.join("/home/nick", fileName)` | Staging dir for nginx config updates |
+| File                      | Line | Current Value                                        | Purpose                              |
+| ------------------------- | ---- | ---------------------------------------------------- | ------------------------------------ |
+| `src/modules/git.ts`      | 8    | `BASE_APPLICATIONS_PATH = "/home/nick/applications"` | Git operations on project dirs       |
+| `src/modules/npm.ts`      | 8    | `BASE_APPLICATIONS_PATH = "/home/nick/applications"` | npm install/build in project dirs    |
+| `src/modules/machines.ts` | 539  | `csvPath = "/home/nick/nick-systemctl.csv"`          | Systemd unit list                    |
+| `src/modules/systemd.ts`  | 134  | `tmpPath = /home/nick/${filename}`                   | Staging dir for sudo mv              |
+| `src/routes/services.ts`  | 1628 | `tmpPath = /home/nick/${filename}`                   | Staging dir for service file updates |
+| `src/routes/nginx.ts`     | 635  | `tmpFilePath = path.join("/home/nick", fileName)`    | Staging dir for nginx config updates |
 
 #### 2. Service File Templates (all hardcode `/home/nick/`)
 
@@ -90,6 +90,7 @@ EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}/.env
 ```
 
 For Python templates, also replace:
+
 ```ini
 Environment="PATH={{USER_HOME}}/environments/{{PYTHON_ENV_NAME}}/bin"
 ExecStart={{USER_HOME}}/environments/{{PYTHON_ENV_NAME}}/bin/python ...
@@ -120,6 +121,7 @@ This can be derived from the Machine model or passed explicitly in the service c
 ### Phase 3: Sudoers Permissions
 
 The current sudoers rules allow `nick` to:
+
 - `sudo systemctl start/stop/restart/status` for services
 - `sudo mv /home/nick/* /etc/systemd/system/`
 - `sudo mv /home/nick/* /etc/nginx/sites-available/`
@@ -141,16 +143,16 @@ These default to current behavior, preserving backward compatibility.
 
 ## Scope Estimate
 
-| Change | Files Modified | Complexity |
-|--------|---------------|------------|
-| Template placeholders | 1 (`systemd.ts`) | Low |
-| Service file templates | 6 template files | Low |
-| Remove hardcoded BASE_APPLICATIONS_PATH | 2 (`git.ts`, `npm.ts`) | Low |
-| Configurable staging dir | 3 (`systemd.ts`, `services.ts`, `nginx.ts`) | Low |
-| Configurable CSV path | 1 (`machines.ts`) | Low |
-| Service creation route updates | 1 (`services.ts`) | Medium |
-| New environment variables | 1 (`.env.example`) | Low |
-| **Total** | **~10 files** | **Low-Medium** |
+| Change                                  | Files Modified                              | Complexity     |
+| --------------------------------------- | ------------------------------------------- | -------------- |
+| Template placeholders                   | 1 (`systemd.ts`)                            | Low            |
+| Service file templates                  | 6 template files                            | Low            |
+| Remove hardcoded BASE_APPLICATIONS_PATH | 2 (`git.ts`, `npm.ts`)                      | Low            |
+| Configurable staging dir                | 3 (`systemd.ts`, `services.ts`, `nginx.ts`) | Low            |
+| Configurable CSV path                   | 1 (`machines.ts`)                           | Low            |
+| Service creation route updates          | 1 (`services.ts`)                           | Medium         |
+| New environment variables               | 1 (`.env.example`)                          | Low            |
+| **Total**                               | **~10 files**                               | **Low-Medium** |
 
 ## Why Not a Separate api02/
 
