@@ -124,6 +124,10 @@ Critical .env variables:
 - `PATH_TO_LOGS` - Application log directory
 - `PORKBUN_API_KEY` / `PORKBUN_SECRET_KEY` - DNS management credentials
 - `URL_THE_SERVER_MANAGER_WEB` - Frontend dashboard URL for CORS
+- `APP_USER` - System user whose home directory the API manages (`"nick"` or `"limited_user"`). Defaults to `"nick"`. Controls all user-specific paths via `src/config/appUser.ts`
+- `STAGING_DIR` - Directory for staging files before `sudo mv` to system directories. Defaults to `${APP_USER_HOME}/project_resources/TheServerManager/staging`. Auto-created on startup. Must match sudoers rules permitting `sudo mv <STAGING_DIR>/* /etc/systemd/system/` and `sudo mv <STAGING_DIR>/* /etc/nginx/sites-available/`
+
+**Systemctl CSV file** (not an env var): The API discovers managed services from a CSV file at `${APP_USER_HOME}/${APP_USER}-systemctl.csv` (e.g. `/home/limited_user/limited_user-systemctl.csv`). This file must be created manually on each server.
 
 ## Build Process
 

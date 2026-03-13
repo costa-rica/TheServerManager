@@ -157,15 +157,15 @@ Update sudoers rules to allow `nick` to mv files from the new staging directory.
 
 ---
 
-## Phase 7: Verify CSV Path Convention
+## Phase 7: Verify CSV Path Convention ✅ COMPLETE
 
 Ensure the systemctl CSV file naming works for limited_user.
 
-- [ ] Verify or create the convention: CSV file is named `${APP_USER}-systemctl.csv` in `${APP_USER_HOME}/`
+- [x] Verify or create the convention: CSV file is named `${APP_USER}-systemctl.csv` in `${APP_USER_HOME}/`
   - For nick: `/home/nick/nick-systemctl.csv` (existing)
   - For limited_user: `/home/limited_user/limited_user-systemctl.csv` (new)
-- [ ] Document the CSV file requirement in `.env.example` alongside the `APP_USER` variable
-- [ ] Commit: "docs: document systemctl CSV path convention for APP_USER"
+- [x] Document the CSV file requirement in `.env.example` alongside the `APP_USER` variable
+- [x] Commit: "docs: document systemctl CSV path convention for APP_USER"
 
 ---
 
