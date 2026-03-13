@@ -4,12 +4,14 @@ import bcrypt from "bcrypt";
 import { User } from "../models/user";
 import crypto from "crypto";
 import logger from "../config/logger";
+import { STAGING_DIR } from "../config/appUser";
 
 export function verifyCheckDirectoryExists(): void {
   // Add directory paths to check (and create if they don't exist)
   const pathsToCheck = [
     process.env.PATH_DATABASE,
     process.env.PATH_PROJECT_RESOURCES,
+    STAGING_DIR,
   ].filter((path): path is string => typeof path === "string");
 
   pathsToCheck.forEach((dirPath) => {

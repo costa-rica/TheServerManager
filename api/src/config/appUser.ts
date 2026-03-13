@@ -5,7 +5,9 @@ const APP_USER_HOME = path.join("/home", APP_USER);
 const APP_USER_GROUP = APP_USER;
 const APPLICATIONS_DIR = path.join(APP_USER_HOME, "applications");
 const ENVIRONMENTS_DIR = path.join(APP_USER_HOME, "environments");
-const STAGING_DIR = APP_USER_HOME;
+const STAGING_DIR =
+  process.env.STAGING_DIR ||
+  path.join(APP_USER_HOME, "project_resources", "TheServerManager", "staging");
 const SYSTEMCTL_CSV_PATH = path.join(
   APP_USER_HOME,
   `${APP_USER}-systemctl.csv`
