@@ -2,10 +2,10 @@ import os from "os";
 import fs from "fs/promises";
 import path from "path";
 import logger from "../config/logger";
-import { SYSTEMCTL_CSV_PATH } from "../config/appUser";
+import { APP_USER_HOME, SYSTEMCTL_CSV_PATH } from "../config/appUser";
 
 // Helper function to get machine name and local IP address
-function getMachineInfo(): { machineName: string; localIpAddress: string } {
+function getMachineInfo(): { machineName: string; localIpAddress: string; userHomeDir: string } {
 	// Get machine hostname
 	const machineName = os.hostname();
 
@@ -34,7 +34,7 @@ function getMachineInfo(): { machineName: string; localIpAddress: string } {
 		localIpAddress = "127.0.0.1";
 	}
 
-	return { machineName, localIpAddress };
+	return { machineName, localIpAddress, userHomeDir: APP_USER_HOME };
 }
 
 /**

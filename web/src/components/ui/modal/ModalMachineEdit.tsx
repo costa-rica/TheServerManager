@@ -167,6 +167,9 @@ export const ModalMachineEdit: React.FC<ModalMachineEditProps> = ({
 
       // Success - replace all existing services with the returned ones
       if (data.servicesArray && Array.isArray(data.servicesArray)) {
+        const logsPath = data.userHomeDir
+          ? `${data.userHomeDir.replace(/\/+$/, "")}/logs/`
+          : defaultLogsPath;
         const newServices: ServiceConfig[] = data.servicesArray.map(
           (service: {
             filename: string;
@@ -175,7 +178,7 @@ export const ModalMachineEdit: React.FC<ModalMachineEditProps> = ({
           }) => ({
             name: "", // Will be auto-populated by backend
             filename: service.filename,
-            pathToLogs: defaultLogsPath,
+            pathToLogs: logsPath,
             filenameTimer: service.filenameTimer || "",
             port: service.port || undefined,
           })

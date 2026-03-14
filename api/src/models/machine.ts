@@ -19,6 +19,10 @@ const machineSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    userHomeDir: {
+      type: String,
+      required: false,
+    },
     nginxStoragePathOptions: [
       {
         type: String,

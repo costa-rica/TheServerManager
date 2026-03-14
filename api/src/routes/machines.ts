@@ -12,6 +12,7 @@ import {
 import { authenticateToken } from "../modules/authentication";
 import { formatMachineForResponse } from "../modules/permissions";
 import logger from "../config/logger";
+import { APP_USER_HOME } from "../config/appUser";
 
 const router = express.Router();
 
@@ -113,6 +114,7 @@ router.get(
       res.status(200).json({
         message: "Services array built successfully from nick-systemctl.csv",
         servicesArray,
+        userHomeDir: APP_USER_HOME,
       });
     } catch (error: any) {
       logger.error(
@@ -291,8 +293,8 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
       }
     }
 
-    // Get machine name and local IP address from OS
-    const { machineName, localIpAddress } = getMachineInfo();
+    // Get machine name, local IP address, and user home directory from OS
+    const { machineName, localIpAddress, userHomeDir } = getMachineInfo();
 
     // Auto-generate publicId
     const publicId = randomUUID();
@@ -303,6 +305,7 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
       machineName,
       urlApiForTsmNetwork,
       localIpAddress,
+      userHomeDir,
       nginxStoragePathOptions,
       servicesArray: servicesArray || [],
     });
@@ -315,6 +318,7 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
         machineName: machine.machineName,
         urlApiForTsmNetwork: machine.urlApiForTsmNetwork,
         localIpAddress: machine.localIpAddress,
+        userHomeDir: machine.userHomeDir,
         nginxStoragePathOptions: machine.nginxStoragePathOptions,
         servicesArray: machine.servicesArray,
         createdAt: machine.createdAt,

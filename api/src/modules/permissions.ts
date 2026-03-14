@@ -8,6 +8,7 @@ interface MachineLike {
   machineName: string;
   urlApiForTsmNetwork: string;
   localIpAddress: string;
+  userHomeDir?: string;
   nginxStoragePathOptions?: string[];
   servicesArray?: unknown[];
   createdAt?: Date;
@@ -40,6 +41,7 @@ export function formatMachineForResponse(machine: MachineLike) {
     machineName: machine.machineName,
     urlApiForTsmNetwork: machine.urlApiForTsmNetwork,
     localIpAddress: machine.localIpAddress,
+    userHomeDir: machine.userHomeDir,
     nginxStoragePathOptions: machine.nginxStoragePathOptions,
     servicesArray: machine.servicesArray,
     createdAt: machine.createdAt,
