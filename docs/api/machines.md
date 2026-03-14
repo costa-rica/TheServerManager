@@ -90,7 +90,8 @@ curl --location 'http://localhost:3000/machines/check-nick-systemctl' \
     {
       "filename": "no-port-app.service"
     }
-  ]
+  ],
+  "userHomeDir": "/home/nick"
 }
 ```
 
@@ -101,6 +102,7 @@ curl --location 'http://localhost:3000/machines/check-nick-systemctl' \
 | `servicesArray[].filename`      | String | Service filename from CSV (always ends with `.service`)                   |
 | `servicesArray[].port`          | Number | Port number extracted from service file (optional, only if found)         |
 | `servicesArray[].filenameTimer` | String | Associated timer filename (optional, only if `.timer` file exists in CSV) |
+| `userHomeDir`                   | String | Home directory of the APP_USER on this server (e.g., `/home/nick`)        |
 
 **Error Response (404 Not Found - CSV File Missing):**
 
@@ -329,6 +331,7 @@ curl --location 'http://localhost:3000/machines' \
       "machineName": "ubuntu-server-01",
       "urlApiForTsmNetwork": "http://192.168.1.100:8000",
       "localIpAddress": "192.168.1.100",
+      "userHomeDir": "/home/ubuntu",
       "nginxStoragePathOptions": ["/var/www", "/home/user/sites"],
       "servicesArray": [
         {
@@ -365,6 +368,7 @@ curl --location 'http://localhost:3000/machines' \
 - Non-admin users only see machines whose publicIds are in their `accessServersArray`
 - Non-admin users with empty `accessServersArray` receive an empty array
 - MongoDB `_id` field is excluded from response (only `publicId` is returned)
+- `userHomeDir` is derived from the `APP_USER` environment variable at machine creation time (may be absent on older machines)
 - Permission filtering is transparent to the client (no error for insufficient access)
 
 ---
@@ -427,6 +431,7 @@ curl --location 'http://localhost:3000/machines' \
     "machineName": "ubuntu-server-01",
     "urlApiForTsmNetwork": "http://192.168.1.100:8000",
     "localIpAddress": "192.168.1.100",
+    "userHomeDir": "/home/ubuntu",
     "nginxStoragePathOptions": ["/var/www", "/home/user/sites"],
     "servicesArray": [
       {
@@ -590,7 +595,7 @@ curl --location 'http://localhost:3000/machines' \
 **Behavior:**
 
 - Auto-generates `publicId` using crypto.randomUUID()
-- Auto-detects `machineName` and `localIpAddress` from OS
+- Auto-detects `machineName`, `localIpAddress`, and `userHomeDir` from OS/environment (userHomeDir is derived from `APP_USER`)
 - Validates each service object in `servicesArray` if provided:
   - Reads service file from `/etc/systemd/system/{filename}`
   - Extracts `WorkingDirectory` from service file
