@@ -1,8 +1,6 @@
 [Unit]
 Description={{PROJECT_NAME}} NextJS Application
 After=network.target
-StartLimitIntervalSec=60
-StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -14,10 +12,6 @@ Environment="PORT={{PORT}}"
 EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}/.env.local
 Environment="PATH=/usr/bin:/usr/local/bin"
 ExecStart=/usr/bin/npm start
-# For APIs / NextJS
-Restart=on-failure
-RestartSec=5
-
 
 [Install]
 WantedBy=multi-user.target

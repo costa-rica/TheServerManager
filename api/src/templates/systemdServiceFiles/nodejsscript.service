@@ -1,8 +1,6 @@
 [Unit]
 Description={{PROJECT_NAME}} NodeJS Script
 After=network.target
-StartLimitIntervalSec=1d
-StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -13,9 +11,6 @@ Environment="NODE_ENV=production"
 Environment="PATH=/usr/bin:/usr/local/bin"
 EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}/.env
 ExecStart=/usr/bin/node index.js
-Restart=on-failure
-RestartSec=10
-
 
 [Install]
 WantedBy=multi-user.target

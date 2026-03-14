@@ -1,8 +1,6 @@
 [Unit]
 Description={{PROJECT_NAME}} ExpressJS API Application
 After=network.target
-StartLimitIntervalSec=60
-StartLimitBurst=5
 
 [Service]
 Type=simple
@@ -13,10 +11,6 @@ Environment="NODE_ENV=production"
 Environment="PATH=/usr/bin:/usr/local/bin"
 EnvironmentFile={{USER_HOME}}/applications/{{PROJECT_NAME}}{{SUBPROJECT_PATH}}/.env
 ExecStart=/usr/bin/node dist/server.js
-# For APIs
-Restart=on-failure
-RestartSec=5
-
 
 [Install]
 WantedBy=multi-user.target
