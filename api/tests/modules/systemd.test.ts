@@ -259,6 +259,71 @@ describe("generateServiceFile", () => {
   });
 });
 
+describe("service filename with subproject suffix", () => {
+  // This mirrors the filename construction logic in api/src/routes/services.ts
+  function buildServiceFilename(
+    projectName: string,
+    subproject?: string
+  ): string {
+    const project_name_lowercase = projectName.toLowerCase();
+    const trimmedSubproject = subproject?.trim();
+    const subprojectSuffix = trimmedSubproject
+      ? `-${trimmedSubproject.toLowerCase()}`
+      : "";
+    return `${project_name_lowercase}${subprojectSuffix}.service`;
+  }
+
+  function buildTimerFilename(
+    projectName: string,
+    subproject?: string
+  ): string {
+    const project_name_lowercase = projectName.toLowerCase();
+    const trimmedSubproject = subproject?.trim();
+    const subprojectSuffix = trimmedSubproject
+      ? `-${trimmedSubproject.toLowerCase()}`
+      : "";
+    return `${project_name_lowercase}${subprojectSuffix}.timer`;
+  }
+
+  it("includes lowercased subproject in service filename", () => {
+    expect(buildServiceFilename("MyProject", "api")).toBe(
+      "myproject-api.service"
+    );
+  });
+
+  it("includes lowercased subproject in timer filename", () => {
+    expect(buildTimerFilename("MyProject", "api")).toBe("myproject-api.timer");
+  });
+
+  it("lowercases mixed-case subproject in filename", () => {
+    expect(buildServiceFilename("MyProject", "Api")).toBe(
+      "myproject-api.service"
+    );
+  });
+
+  it("preserves hyphens in subproject name", () => {
+    expect(buildServiceFilename("MyProject", "jobs-runner")).toBe(
+      "myproject-jobs-runner.service"
+    );
+  });
+
+  it("preserves underscores in subproject name", () => {
+    expect(buildServiceFilename("MyProject", "worker_01")).toBe(
+      "myproject-worker_01.service"
+    );
+  });
+
+  it("produces original filename when subproject is omitted", () => {
+    expect(buildServiceFilename("MyProject")).toBe("myproject.service");
+    expect(buildTimerFilename("MyProject")).toBe("myproject.timer");
+  });
+
+  it("produces original filename when subproject is empty string", () => {
+    expect(buildServiceFilename("MyProject", "")).toBe("myproject.service");
+    expect(buildTimerFilename("MyProject", "")).toBe("myproject.timer");
+  });
+});
+
 describe("subproject helpers", () => {
   it("resolves a valid subproject to a prefixed path segment", () => {
     expect(resolveSubprojectPath("api")).toBe("/api");

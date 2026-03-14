@@ -1329,8 +1329,13 @@ router.post("/make-service-file", async (req: Request, res: Response) => {
       `[services route] Timer template: ${filenameTimerTemplate || "none"}`
     );
 
+    // Build subproject suffix for filenames (e.g., "-api", "-jobs-runner", or "")
+    const subprojectSuffix = trimmedSubproject
+      ? `-${trimmedSubproject.toLowerCase()}`
+      : "";
+
     // Generate the service file
-    const serviceFilename = `${project_name_lowercase}.service`;
+    const serviceFilename = `${project_name_lowercase}${subprojectSuffix}.service`;
     const serviceResult = await generateServiceFile(
       filenameServiceTemplate,
       completeVariables,
@@ -1345,7 +1350,7 @@ router.post("/make-service-file", async (req: Request, res: Response) => {
     // Generate the timer file if requested
     let timerResult: { outputPath: string; content: string } | null = null;
     if (filenameTimerTemplate) {
-      const timerFilename = `${project_name_lowercase}.timer`;
+      const timerFilename = `${project_name_lowercase}${subprojectSuffix}.timer`;
       timerResult = await generateServiceFile(
         filenameTimerTemplate,
         completeVariables,
