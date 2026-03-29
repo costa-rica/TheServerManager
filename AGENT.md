@@ -92,6 +92,12 @@ Each sub-project has its own `.env` file (gitignored). See `api/.env.example` fo
 - `NEXT_PUBLIC_MODE` — `workstation` for local dev (console logging, prefills login form), `production` for file logging
 - `PATH_TO_LOGS` — required when `NEXT_PUBLIC_MODE=production`
 
+## Server Interactions & Sudo Privileges
+
+**Read `docs/SERVER_INTERACTIONS.md` before modifying any code that uses `sudo` commands** (e.g., reading/writing nginx configs, managing systemd services, or controlling services via `systemctl`).
+
+The API runs as a regular user (`nick`) and relies on specific NOPASSWD sudoers rules for system operations. These rules are managed through a CSV file (`/home/nick/nick-systemctl.csv`) and applied via an update script. If you add or change any `sudo` command in the API, you must also update the CSV and document the required sudoers entry — otherwise the command will fail at runtime with "sudo: a password is required".
+
 ## Monorepo Webpack Fix
 
 `web/next.config.ts` explicitly sets `config.resolve.modules` to include `path.resolve(dir, 'node_modules')`. This is required because webpack otherwise walks up to the git root (which has no `node_modules`) and fails to resolve packages like `tailwindcss`.
