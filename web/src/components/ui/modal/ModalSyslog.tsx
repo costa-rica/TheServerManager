@@ -19,6 +19,21 @@ export const ModalSyslog: React.FC<ModalSyslogProps> = ({
   const [logs, setLogs] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [utcTime, setUtcTime] = useState<string>(() => {
+    const now = new Date();
+    return `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}`;
+  });
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setUtcTime(
+        `${String(now.getUTCHours()).padStart(2, "0")}:${String(now.getUTCMinutes()).padStart(2, "0")}`
+      );
+    };
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const token = useAppSelector((state) => state.user.token);
   const connectedMachine = useAppSelector(
@@ -138,14 +153,21 @@ export const ModalSyslog: React.FC<ModalSyslogProps> = ({
     <div className="flex flex-col w-[95vw] h-[95vh] bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
       {/* Header */}
       <div className="flex-shrink-0 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          System Log (syslog)
-        </h2>
-        {connectedMachine && (
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {connectedMachine.machineName}
-          </p>
-        )}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+              System Log (syslog)
+            </h2>
+            {connectedMachine && (
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                {connectedMachine.machineName}
+              </p>
+            )}
+          </div>
+          <span className="text-sm font-mono text-gray-500 dark:text-gray-400">
+            UTC {utcTime}
+          </span>
+        </div>
       </div>
 
       {/* Log Content */}
