@@ -34,6 +34,18 @@ const nginxFileSchema = new mongoose.Schema(
     storeDirectory: {
       type: String,
     },
+    symlink: {
+      type: String,
+      enum: ["yes", "failed"],
+    },
+    nginxReload: {
+      type: String,
+      enum: ["yes", "failed"],
+    },
+    certbot: {
+      type: String,
+      enum: ["yes", "failed"],
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

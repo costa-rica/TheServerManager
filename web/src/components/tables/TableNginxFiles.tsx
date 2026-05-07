@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
 	useReactTable,
 	getCoreRowModel,
@@ -27,6 +27,9 @@ interface NginxFile {
 	localIpAddressNginxHost: string | null;
 	framework: string;
 	storeDirectory: string;
+	symlink: "yes" | "failed" | null;
+	nginxReload: "yes" | "failed" | null;
+	certbot: "yes" | "failed" | null;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -135,6 +138,32 @@ export default function TableNginxFiles({
 		});
 	};
 
+	const renderSetupStatus = useCallback((
+		label: string,
+		value: "yes" | "failed" | null | undefined
+	) => {
+		const displayValue = value ?? "n/a";
+		const statusClass =
+			displayValue === "yes"
+				? "bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400"
+				: displayValue === "failed"
+					? "bg-error-50 text-error-700 dark:bg-error-900/20 dark:text-error-400"
+					: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
+
+		return (
+			<div className="flex items-center justify-between gap-2">
+				<span className="text-xs text-gray-500 dark:text-gray-400">
+					{label}
+				</span>
+				<span
+					className={`rounded px-1.5 py-0.5 text-xs font-medium ${statusClass}`}
+				>
+					{displayValue}
+				</span>
+			</div>
+		);
+	}, []);
+
 	const columns = useMemo<ColumnDef<NginxFile>[]>(
 		() => [
 			{
@@ -215,6 +244,12 @@ export default function TableNginxFiles({
 									<span className="text-brand-600 dark:text-brand-400">
 										{config.framework}
 									</span>
+								</div>
+
+								<div className="mt-2 max-w-52 space-y-1">
+									{renderSetupStatus("Symlink", config.symlink)}
+									{renderSetupStatus("Nginx reload", config.nginxReload)}
+									{renderSetupStatus("Certbot", config.certbot)}
 								</div>
 							</div>
 
@@ -321,7 +356,7 @@ export default function TableNginxFiles({
 				},
 			},
 		],
-		[handleDeleteConfig, expandedStoreDir, expandedNginxHost]
+		[handleDeleteConfig, expandedStoreDir, expandedNginxHost, renderSetupStatus]
 	);
 
 	const table = useReactTable({

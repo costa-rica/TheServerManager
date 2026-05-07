@@ -21,6 +21,9 @@ interface NginxFile {
   localIpAddressNginxHost: string | null;
   framework: string;
   storeDirectory: string;
+  symlink: "yes" | "failed" | null;
+  nginxReload: "yes" | "failed" | null;
+  certbot: "yes" | "failed" | null;
   createdAt: string;
   updatedAt: string;
 }
