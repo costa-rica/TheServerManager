@@ -8,10 +8,13 @@ const ENVIRONMENTS_DIR = path.join(APP_USER_HOME, "environments");
 const STAGING_DIR =
   process.env.STAGING_DIR ||
   path.join(APP_USER_HOME, "project_resources", "TheServerManager", "staging");
-const SYSTEMCTL_CSV_PATH = path.join(
-  APP_USER_HOME,
-  `${APP_USER}-systemctl.csv`
-);
+const SYSTEMCTL_CSV_PATH = process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE;
+
+if (!SYSTEMCTL_CSV_PATH) {
+  throw new Error(
+    "Missing required environment variable PATH_AND_NAME_PRIVILIGE_CSV_FILE"
+  );
+}
 
 export {
   APP_USER,

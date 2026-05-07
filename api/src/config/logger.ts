@@ -24,7 +24,12 @@ import path from "path";
 // V04 Requirement: Startup Validation
 // Validate required environment variables before logger initialization
 // ========================================
-const requiredEnvVars = ["NODE_ENV", "NAME_APP", "PATH_TO_LOGS"];
+const requiredEnvVars = [
+  "NODE_ENV",
+  "NAME_APP",
+  "PATH_TO_LOGS",
+  "PATH_AND_NAME_PRIVILIGE_CSV_FILE",
+];
 const missingVars: string[] = [];
 
 for (const varName of requiredEnvVars) {
