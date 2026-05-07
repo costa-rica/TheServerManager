@@ -12,6 +12,14 @@ import { Machine, ServiceConfig } from "@/types/machine";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setMachinesArray } from "@/store/features/machines/machineSlice";
 
+interface ServiceWarning {
+  code: string;
+  filename: string;
+  workingDirectory?: string;
+  message: string;
+  details?: string;
+}
+
 export default function MachinesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -54,6 +62,21 @@ export default function MachinesPage() {
   ) => {
     setInfoModalData({ title, message, variant });
     setInfoModalOpen(true);
+  };
+
+  const formatServiceWarnings = (warnings: ServiceWarning[] = []) => {
+    if (warnings.length === 0) {
+      return "";
+    }
+
+    return warnings
+      .map((warning) => {
+        const location = warning.workingDirectory
+          ? ` (${warning.workingDirectory})`
+          : "";
+        return `${warning.filename}${location}: ${warning.message}`;
+      })
+      .join("\n");
   };
 
   // Helper function to get the API base URL
@@ -147,7 +170,16 @@ export default function MachinesPage() {
       try {
         // Refetch machines to get complete server-populated data
         await fetchMachines();
-        showInfoModal("Machine Added", `Successfully added machine`, "success");
+        const serviceWarnings = resJson?.serviceWarnings || [];
+        if (serviceWarnings.length > 0) {
+          showInfoModal(
+            "Machine Added With Warnings",
+            `Machine added, but some services are missing environment metadata:\n\n${formatServiceWarnings(serviceWarnings)}`,
+            "warning"
+          );
+        } else {
+          showInfoModal("Machine Added", `Successfully added machine`, "success");
+        }
       } catch (error) {
         console.error("Error refetching machines:", error);
         showInfoModal(
@@ -310,11 +342,20 @@ export default function MachinesPage() {
       try {
         // Refetch machines to get updated data
         await fetchMachines();
-        showInfoModal(
-          "Machine Updated",
-          `Successfully updated machine configuration`,
-          "success"
-        );
+        const serviceWarnings = resJson?.serviceWarnings || [];
+        if (serviceWarnings.length > 0) {
+          showInfoModal(
+            "Machine Updated With Warnings",
+            `Machine updated, but some services are missing environment metadata:\n\n${formatServiceWarnings(serviceWarnings)}`,
+            "warning"
+          );
+        } else {
+          showInfoModal(
+            "Machine Updated",
+            `Successfully updated machine configuration`,
+            "success"
+          );
+        }
       } catch (error) {
         console.error("Error refetching machines:", error);
         showInfoModal(

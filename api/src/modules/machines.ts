@@ -4,6 +4,14 @@ import path from "path";
 import logger from "../config/logger";
 import { APP_USER_HOME, SYSTEMCTL_CSV_PATH } from "../config/appUser";
 
+interface ServiceValidationWarning {
+	code: "ENV_FILE_NOT_FOUND" | "NAME_APP_NOT_FOUND";
+	filename: string;
+	workingDirectory: string;
+	message: string;
+	details: string;
+}
+
 // Helper function to get machine name and local IP address
 function getMachineInfo(): { machineName: string; localIpAddress: string; userHomeDir: string } {
 	// Get machine hostname
@@ -45,10 +53,11 @@ function getMachineInfo(): { machineName: string; localIpAddress: string; userHo
  * 2. Filename must end with '.service'
  * 3. Service file must exist at /etc/systemd/system/{filename}
  * 4. Reads the systemd service file to extract WorkingDirectory
- * 5. Reads environment file to extract app name:
+ * 5. Optionally reads environment file to extract app name:
  *    - First tries .env file, then falls back to .env.local if not found
  *    - Searches for "NAME_APP=" string and extracts the value to the right
  *    - This matches both NAME_APP and NEXT_PUBLIC_NAME_APP variables
+ *    - Missing env files or NAME_APP values become warnings, not validation errors
  * 6. Updates the service object in place with name and workingDirectory
  *
  * @param service - Service object with filename property (will be updated in place)
@@ -177,32 +186,57 @@ async function getServicesNameAndValidateServiceFile(service: any): Promise<void
 		};
 	}
 
+	const fallbackName =
+		typeof service.name === "string" && service.name.trim() !== ""
+			? service.name.trim()
+			: filename.replace(/\.service$/, "");
+
+	service.name = fallbackName;
+	service.workingDirectory = workingDirectory;
+	delete service.envFileWarning;
+
 	// Check if .env file exists in WorkingDirectory
 	const envFilePath = path.join(workingDirectory, ".env");
 	const envLocalFilePath = path.join(workingDirectory, ".env.local");
 
-	let envFileContent: string;
-	let name: string;
-	let envFileUsed: string;
+	const envCandidates = [
+		{ label: ".env", filePath: envFilePath },
+		{ label: ".env.local", filePath: envLocalFilePath },
+	];
+	const envFilesWithoutNameApp: string[] = [];
+	let envFileFound = false;
 
-	// Try .env first
-	try {
-		await fs.access(envFilePath);
-		logger.info(`[machines.ts] Found .env file for ${filename}`);
-
-		// Read .env file
+	for (const envCandidate of envCandidates) {
 		try {
-			envFileContent = await fs.readFile(envFilePath, "utf8");
-			logger.info(`[machines.ts] Successfully read .env file for ${filename}`);
-			envFileUsed = ".env";
+			await fs.access(envCandidate.filePath);
+			envFileFound = true;
+			logger.info(`[machines.ts] Found ${envCandidate.label} file for ${filename}`);
 		} catch (error: any) {
-			// Distinguish between permission denied and other read errors
 			if (error.code === 'EACCES' || error.code === 'EPERM') {
 				throw {
 					error: {
 						code: "ENV_FILE_PERMISSION_DENIED",
-						message: `Permission denied reading .env file`,
-						details: process.env.NODE_ENV !== 'production' ? `.env file exists in '${workingDirectory}' for service '${filename}' but cannot be read due to insufficient permissions` : undefined,
+						message: `Permission denied accessing ${envCandidate.label} file`,
+						details: process.env.NODE_ENV !== 'production' ? `${envCandidate.label} file exists in '${workingDirectory}' for service '${filename}' but cannot be accessed due to insufficient permissions` : undefined,
+						status: 403
+					}
+				};
+			}
+
+			continue;
+		}
+
+		let envFileContent: string;
+		try {
+			envFileContent = await fs.readFile(envCandidate.filePath, "utf8");
+			logger.info(`[machines.ts] Successfully read ${envCandidate.label} file for ${filename}`);
+		} catch (error: any) {
+			if (error.code === 'EACCES' || error.code === 'EPERM') {
+				throw {
+					error: {
+						code: "ENV_FILE_PERMISSION_DENIED",
+						message: `Permission denied reading ${envCandidate.label} file`,
+						details: process.env.NODE_ENV !== 'production' ? `${envCandidate.label} file exists in '${workingDirectory}' for service '${filename}' but cannot be read due to insufficient permissions` : undefined,
 						status: 403
 					}
 				};
@@ -211,112 +245,40 @@ async function getServicesNameAndValidateServiceFile(service: any): Promise<void
 			throw {
 				error: {
 					code: "ENV_FILE_READ_ERROR",
-					message: `Failed to read .env file`,
-					details: process.env.NODE_ENV !== 'production' ? `Failed to read .env file in '${workingDirectory}' for service '${filename}': ${error.message}` : undefined,
+					message: `Failed to read ${envCandidate.label} file`,
+					details: process.env.NODE_ENV !== 'production' ? `Failed to read ${envCandidate.label} file in '${workingDirectory}' for service '${filename}': ${error.message}` : undefined,
 					status: 500
 				}
 			};
 		}
 
-		// Parse NAME_APP from .env file (matches both NAME_APP and NEXT_PUBLIC_NAME_APP)
 		const nameAppMatch = envFileContent.match(/NAME_APP=(.+)$/m);
-		if (!nameAppMatch) {
-			throw {
-				error: {
-					code: "NAME_APP_NOT_FOUND",
-					message: `NAME_APP variable not found in .env file`,
-					details: `No variable containing "NAME_APP=" found in .env file for service '${filename}'`,
-					status: 400
-				}
-			};
+		if (nameAppMatch) {
+			service.name = nameAppMatch[1].trim();
+			logger.info(`[machines.ts] Found NAME_APP in ${envCandidate.label} for ${filename}: ${service.name}`);
+			break;
 		}
 
-		name = nameAppMatch[1].trim();
-		logger.info(`[machines.ts] Found NAME_APP in .env for ${filename}: ${name}`);
-	} catch (error: any) {
-		// If .env doesn't exist, try .env.local
-		if (error.error?.code) {
-			// This is one of our thrown errors (read error or NAME_APP not found), re-throw it
-			throw error;
-		}
-
-		// .env doesn't exist, try .env.local
-		logger.info(`[machines.ts] .env not found, trying .env.local for ${filename}`);
-		try {
-			await fs.access(envLocalFilePath);
-			logger.info(`[machines.ts] Found .env.local file for ${filename}`);
-		} catch (error: any) {
-			// Distinguish between file not found and permission denied
-			if (error.code === 'EACCES' || error.code === 'EPERM') {
-				throw {
-					error: {
-						code: "ENV_FILE_PERMISSION_DENIED",
-						message: `Permission denied accessing .env.local file`,
-						details: process.env.NODE_ENV !== 'production' ? `.env.local file exists in '${workingDirectory}' for service '${filename}' but cannot be accessed due to insufficient permissions` : undefined,
-						status: 403
-					}
-				};
-			}
-
-			// Neither .env nor .env.local found
-			throw {
-				error: {
-					code: "ENV_FILE_NOT_FOUND",
-					message: `Environment file not found`,
-					details: `Neither .env nor .env.local file found in WorkingDirectory '${workingDirectory}' for service '${filename}'`,
-					status: 404
-				}
-			};
-		}
-
-		// Read .env.local file
-		try {
-			envFileContent = await fs.readFile(envLocalFilePath, "utf8");
-			logger.info(`[machines.ts] Successfully read .env.local file for ${filename}`);
-			envFileUsed = ".env.local";
-		} catch (error: any) {
-			// Distinguish between permission denied and other read errors
-			if (error.code === 'EACCES' || error.code === 'EPERM') {
-				throw {
-					error: {
-						code: "ENV_FILE_PERMISSION_DENIED",
-						message: `Permission denied reading .env.local file`,
-						details: process.env.NODE_ENV !== 'production' ? `.env.local file exists in '${workingDirectory}' for service '${filename}' but cannot be read due to insufficient permissions` : undefined,
-						status: 403
-					}
-				};
-			}
-
-			throw {
-				error: {
-					code: "ENV_FILE_READ_ERROR",
-					message: `Failed to read .env.local file`,
-					details: process.env.NODE_ENV !== 'production' ? `Failed to read .env.local file in '${workingDirectory}' for service '${filename}': ${error.message}` : undefined,
-					status: 500
-				}
-			};
-		}
-
-		// Parse NAME_APP from .env.local file (matches both NAME_APP and NEXT_PUBLIC_NAME_APP)
-		const nameAppMatchLocal = envFileContent.match(/NAME_APP=(.+)$/m);
-		if (!nameAppMatchLocal) {
-			throw {
-				error: {
-					code: "NAME_APP_NOT_FOUND",
-					message: `NAME_APP variable not found in .env.local file`,
-					details: `No variable containing "NAME_APP=" found in .env.local file for service '${filename}'`,
-					status: 400
-				}
-			};
-		}
-
-		name = nameAppMatchLocal[1].trim();
-		logger.info(`[machines.ts] Found NAME_APP in .env.local for ${filename}: ${name}`);
+		envFilesWithoutNameApp.push(envCandidate.label);
 	}
 
-	// Update service object in place
-	service.name = name;
-	service.workingDirectory = workingDirectory;
+	if (!envFileFound) {
+		service.envFileWarning = {
+			code: "ENV_FILE_NOT_FOUND",
+			filename,
+			workingDirectory,
+			message: "Environment file not found",
+			details: `Neither .env nor .env.local file found in WorkingDirectory '${workingDirectory}' for service '${filename}'. Using fallback service name '${service.name}'.`,
+		} satisfies ServiceValidationWarning;
+	} else if (envFilesWithoutNameApp.length > 0 && service.name === fallbackName) {
+		service.envFileWarning = {
+			code: "NAME_APP_NOT_FOUND",
+			filename,
+			workingDirectory,
+			message: "NAME_APP variable not found",
+			details: `No variable containing "NAME_APP=" found in ${envFilesWithoutNameApp.join(" or ")} for service '${filename}'. Using fallback service name '${service.name}'.`,
+		} satisfies ServiceValidationWarning;
+	}
 
 	logger.info(`[machines.ts] Successfully validated and populated service: ${filename}`);
 }

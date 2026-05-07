@@ -16,6 +16,18 @@ import { APP_USER_HOME } from "../config/appUser";
 
 const router = express.Router();
 
+function extractServiceWarningsAndCleanServices(servicesArray: any[]) {
+  const serviceWarnings = servicesArray
+    .map((service) => service.envFileWarning)
+    .filter(Boolean);
+
+  servicesArray.forEach((service) => {
+    delete service.envFileWarning;
+  });
+
+  return serviceWarnings;
+}
+
 // 🔹 GET /machines/name: Get machine name and local IP address
 router.get("/name", authenticateToken, (req: Request, res: Response) => {
   try {
@@ -211,6 +223,7 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
     }
 
     // Validate servicesArray if provided
+    let serviceWarnings: any[] = [];
     if (servicesArray !== undefined) {
       if (!Array.isArray(servicesArray)) {
         return res.status(400).json({
@@ -291,6 +304,8 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
           return res.status(error.error?.status || 400).json(error);
         }
       }
+
+      serviceWarnings = extractServiceWarningsAndCleanServices(servicesArray);
     }
 
     // Get machine name, local IP address, and user home directory from OS
@@ -321,9 +336,11 @@ router.post("/", authenticateToken, async (req: Request, res: Response) => {
         userHomeDir: machine.userHomeDir,
         nginxStoragePathOptions: machine.nginxStoragePathOptions,
         servicesArray: machine.servicesArray,
+        serviceWarnings,
         createdAt: machine.createdAt,
         updatedAt: machine.updatedAt,
       },
+      serviceWarnings,
     });
   } catch (error: any) {
     logger.error("Error creating machine:", error);
@@ -417,6 +434,7 @@ router.patch(
       }
 
       // Validate and add servicesArray if provided
+      let serviceWarnings: any[] = [];
       if (servicesArray !== undefined) {
         logger.info(
           `[machines.ts] PATCH /machines/${publicId} - Validating servicesArray with ${servicesArray.length} services`
@@ -515,6 +533,7 @@ router.patch(
         logger.info(
           `[machines.ts] PATCH /machines/${publicId} - All services validated successfully`
         );
+        serviceWarnings = extractServiceWarningsAndCleanServices(servicesArray);
         updates.servicesArray = servicesArray;
       }
 
@@ -556,9 +575,11 @@ router.patch(
           localIpAddress: updatedMachine!.localIpAddress,
           nginxStoragePathOptions: updatedMachine!.nginxStoragePathOptions,
           servicesArray: updatedMachine!.servicesArray,
+          serviceWarnings,
           createdAt: updatedMachine!.createdAt,
           updatedAt: updatedMachine!.updatedAt,
         },
+        serviceWarnings,
       });
     } catch (error: any) {
       logger.error("Error updating machine:", error);
