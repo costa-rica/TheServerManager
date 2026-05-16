@@ -830,7 +830,7 @@ export default function NginxPage() {
       >
         <ModalInformationYesOrNo
           title="Delete Nginx Configuration"
-          message={`Are you sure you want to delete the configuration for "${configToDelete?.serverName}"? This will remove the database entry but will NOT delete the actual nginx configuration file from the filesystem. This action cannot be undone.`}
+          message={`Are you sure you want to delete the configuration for "${configToDelete?.serverName}"? This will remove the database entry, the nginx configuration file, and any matching sites-enabled symlink. This action cannot be undone.`}
           onYes={handleDeleteConfigConfirm}
           onClose={() => {
             setDeleteConfigModalOpen(false);

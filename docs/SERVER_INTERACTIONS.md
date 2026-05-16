@@ -14,7 +14,9 @@ The Server Manager API requires elevated privileges to manage systemd services a
 
 Sudo privileges are managed through a CSV file located at `/home/nick/nick-systemctl.csv`. This file defines which commands the `nick` user can execute with sudo without entering a password.
 
-**CSV Structure:**
+#### Reverse Proxy Servers
+
+Use this structure on servers that host nginx reverse proxy configuration files, manage `sites-available` and `sites-enabled`, run nginx validation, reload nginx, or request certificates with certbot.
 
 ```csv
 user,runas,tag,command,action,unit
@@ -27,19 +29,38 @@ nick,ALL=(root),NOPASSWD:,/usr/bin/cp,/etc/nginx/sites-available/*,/etc/nginx/si
 nick,ALL=(root),NOPASSWD:,/usr/bin/mv,/home/nick/*,/etc/nginx/sites-available/
 nick,ALL=(root),NOPASSWD:,/usr/bin/mv,/etc/nginx/sites-available/*.backup.*,/etc/nginx/sites-available/*
 nick,ALL=(root),NOPASSWD:,/usr/bin/rm,/etc/nginx/sites-available/*.backup.*,
+nick,ALL=(root),NOPASSWD:,/usr/bin/rm,/etc/nginx/sites-available/*,
+nick,ALL=(root),NOPASSWD:,/usr/bin/rm,/etc/nginx/sites-enabled/*,
 nick,ALL=(root),NOPASSWD:,/usr/sbin/nginx,-t,
+nick,ALL=(root),NOPASSWD:,/usr/bin/ln,-s,*
+nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,reload,nginx
+nick,ALL=(root),NOPASSWD:,/usr/bin/certbot,--nginx,*
+nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,restart,tsm-api.service
+nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,status,tsm-api.service
+```
+
+#### Non-Reverse Proxy Servers
+
+Use this structure on app-only servers that manage systemd services but do not host nginx reverse proxy configuration. These servers should not include nginx, symlink, nginx reload, or certbot permissions.
+
+```csv
+user,runas,tag,command,action,unit
+nick,ALL=(root),NOPASSWD:,/usr/bin/mv,/home/nick/*.service,/etc/systemd/system/
+nick,ALL=(root),NOPASSWD:,/usr/bin/mv,/home/nick/*.timer,/etc/systemd/system/
+nick,ALL=(root),NOPASSWD:,/usr/bin/cat,/etc/systemd/system/*.service,
+nick,ALL=(root),NOPASSWD:,/usr/bin/cat,/etc/systemd/system/*.timer,
 nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,restart,tsm-api.service
 nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,status,tsm-api.service
 ```
 
 Each row specifies:
 
-- **user**: Username that gets the privilege (nick)
-- **runas**: Execution context (ALL=(root) means run as root)
-- **tag**: Permission modifier (NOPASSWD: means no password required)
-- **command**: Full path to the command (/usr/bin/systemctl or /usr/bin/mv)
-- **action**: The systemctl action or source path pattern for mv
-- **unit**: The specific service/timer file or destination directory
+- `user`: Username that gets the privilege, such as `nick`.
+- `runas`: Execution context, such as `ALL=(root)`.
+- `tag`: Permission modifier, such as `NOPASSWD:`.
+- `command`: Full path to the command, such as `/usr/bin/systemctl` or `/usr/bin/mv`.
+- `action`: The systemctl action, command argument, or source path pattern.
+- `unit`: The service or timer file, destination directory, or final command argument.
 
 ### Update Script
 

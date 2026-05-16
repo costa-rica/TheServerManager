@@ -425,10 +425,10 @@ If `nginx -t` fails, the handler attempts to move the backup file back over the 
 
 ## DELETE /nginx/:publicId
 
-Deletes an nginx config file from disk and deletes the matching database record.
+Deletes an nginx config file, any matching `sites-enabled` symlink, and the matching database record.
 
 - Authentication required: JWT bearer token.
-- Side effect: removes a file from disk when present and deletes one row from `nginxfiles`.
+- Side effect: removes the `sites-enabled` symlink when the stored directory is `sites-available`, removes the stored config file when present, and deletes one row from `nginxfiles`.
 
 ### Parameters
 
@@ -447,7 +447,22 @@ curl -X DELETE http://localhost:3000/nginx/5e51a1d8-7c62-4cb8-86a8-22e3b85d2f41 
 {
   "message": "Nginx configuration deleted successfully",
   "serverName": "app.example.com",
-  "filePath": "/etc/nginx/sites-available/app.example.com"
+  "filePath": "/etc/nginx/sites-available/app.example.com",
+  "enabledSymlinkPath": "/etc/nginx/sites-enabled/app.example.com",
+  "deletedPaths": [
+    {
+      "path": "/etc/nginx/sites-enabled/app.example.com",
+      "deleted": true,
+      "missing": false,
+      "method": "sudo rm"
+    },
+    {
+      "path": "/etc/nginx/sites-available/app.example.com",
+      "deleted": true,
+      "missing": false,
+      "method": "sudo rm"
+    }
+  ]
 }
 ```
 

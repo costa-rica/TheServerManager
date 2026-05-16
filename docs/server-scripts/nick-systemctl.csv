@@ -44,3 +44,5 @@ nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,disable,newsnexusrequestergooglerss
 nick,ALL=(root),NOPASSWD:,/usr/bin/systemctl,disable,newsnexusrequestergooglerss02.timer
 nick,ALL=(root),NOPASSWD:,/usr/bin/cat,/etc/systemd/system/*.service,
 nick,ALL=(root),NOPASSWD:,/usr/bin/cat,/etc/systemd/system/*.timer,
+nick,ALL=(root),NOPASSWD:,/usr/bin/rm,/etc/nginx/sites-available/*,
+nick,ALL=(root),NOPASSWD:,/usr/bin/rm,/etc/nginx/sites-enabled/*,

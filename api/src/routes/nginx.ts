@@ -16,10 +16,80 @@ import { STAGING_DIR } from "../config/appUser";
 import { generateNginxScanReport } from "../modules/nginxReports";
 import logger from "../config/logger";
 import mongoose from "mongoose";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import fs from "fs";
 import path from "path";
 
 const router = express.Router();
+const execFileAsync = promisify(execFile);
+
+interface DeletePathResult {
+  path: string;
+  deleted: boolean;
+  missing: boolean;
+  method: "sudo rm" | "unlink";
+}
+
+function getSitesEnabledPath(storeDirectory: string, serverName: string): string | null {
+  const normalizedStoreDirectory = path.normalize(storeDirectory);
+
+  if (path.basename(normalizedStoreDirectory) !== "sites-available") {
+    return null;
+  }
+
+  return path.join(
+    path.dirname(normalizedStoreDirectory),
+    "sites-enabled",
+    serverName
+  );
+}
+
+function shouldUseSudoRm(filePath: string): boolean {
+  return path.resolve(filePath).startsWith("/etc/nginx/");
+}
+
+function getDeleteErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Unknown error";
+}
+
+async function deletePathIfPresent(filePath: string): Promise<DeletePathResult> {
+  const useSudo = shouldUseSudoRm(filePath);
+
+  try {
+    if (useSudo) {
+      await execFileAsync("sudo", ["rm", filePath]);
+    } else {
+      await fs.promises.unlink(filePath);
+    }
+
+    return {
+      path: filePath,
+      deleted: true,
+      missing: false,
+      method: useSudo ? "sudo rm" : "unlink",
+    };
+  } catch (error: any) {
+    const message = `${error?.stderr || ""} ${getDeleteErrorMessage(error)}`;
+    const isMissing =
+      error?.code === "ENOENT" || message.includes("No such file or directory");
+
+    if (isMissing) {
+      return {
+        path: filePath,
+        deleted: false,
+        missing: true,
+        method: useSudo ? "sudo rm" : "unlink",
+      };
+    }
+
+    throw new Error(`Failed to delete ${filePath}: ${message.trim()}`);
+  }
+}
 
 // Apply JWT authentication to all routes
 router.use(authenticateToken);
@@ -823,19 +893,27 @@ router.delete("/:publicId", async (req: Request, res: Response) => {
       });
     }
 
-    // Construct file path
+    // Construct file paths
     const filePath = path.join(config.storeDirectory, config.serverName);
+    const enabledSymlinkPath = getSitesEnabledPath(
+      config.storeDirectory,
+      config.serverName
+    );
 
-    // Delete physical file (continue even if file doesn't exist)
-    try {
-      await fs.promises.unlink(filePath);
-      logger.info(`🗑️  Deleted nginx config file: ${filePath}`);
-    } catch (error) {
-      // Log warning but continue - file may already be deleted
-      logger.warn(
-        `⚠️  File not found (will still delete DB entry): ${filePath}`
-      );
+    const deleteResults: DeletePathResult[] = [];
+    if (enabledSymlinkPath) {
+      deleteResults.push(await deletePathIfPresent(enabledSymlinkPath));
     }
+
+    deleteResults.push(await deletePathIfPresent(filePath));
+
+    deleteResults.forEach((result) => {
+      if (result.deleted) {
+        logger.info(`🗑️  Deleted nginx path with ${result.method}: ${result.path}`);
+      } else if (result.missing) {
+        logger.warn(`⚠️  Nginx path already missing: ${result.path}`);
+      }
+    });
 
     // Delete database document
     await NginxFile.findOneAndDelete({ publicId });
@@ -844,6 +922,8 @@ router.delete("/:publicId", async (req: Request, res: Response) => {
       message: "Nginx configuration deleted successfully",
       serverName: config.serverName,
       filePath,
+      enabledSymlinkPath,
+      deletedPaths: deleteResults,
     });
   } catch (error) {
     logger.error("Error deleting nginx configuration:", error);
