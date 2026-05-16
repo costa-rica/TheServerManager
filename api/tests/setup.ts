@@ -12,3 +12,6 @@ process.env.JWT_SECRET = "test-secret-key-for-testing";
 // Logger requires these env vars at import time
 process.env.NAME_APP = process.env.NAME_APP || "TestServerManagerAPI";
 process.env.PATH_TO_LOGS = process.env.PATH_TO_LOGS || "/tmp/tsm-test-logs";
+process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE =
+  process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE ||
+  "/home/nick/nick-systemctl.csv";

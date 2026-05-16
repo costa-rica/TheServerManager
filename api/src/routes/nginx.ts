@@ -1,6 +1,8 @@
 import express from "express";
 import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
+import { execFile } from "child_process";
+import { promisify } from "util";
 import { authenticateToken } from "../modules/authentication";
 import { NginxFile } from "../models/nginxFile";
 import { Machine } from "../models/machine";
@@ -16,19 +18,33 @@ import { STAGING_DIR } from "../config/appUser";
 import { generateNginxScanReport } from "../modules/nginxReports";
 import logger from "../config/logger";
 import mongoose from "mongoose";
-import { execFile } from "child_process";
-import { promisify } from "util";
 import fs from "fs";
 import path from "path";
 
 const router = express.Router();
 const execFileAsync = promisify(execFile);
 
+type NginxSetupStatus = "yes" | "failed" | null;
+
+interface NginxSetupSummary {
+  symlink: NginxSetupStatus;
+  nginxReload: NginxSetupStatus;
+  certbot: NginxSetupStatus;
+  errors: string[];
+}
+
 interface DeletePathResult {
   path: string;
   deleted: boolean;
   missing: boolean;
   method: "sudo rm" | "unlink";
+}
+
+const DOMAIN_NAME_REGEX =
+  /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+function isValidDomainName(value: string): boolean {
+  return DOMAIN_NAME_REGEX.test(value);
 }
 
 function getSitesEnabledPath(storeDirectory: string, serverName: string): string | null {
@@ -49,12 +65,17 @@ function shouldUseSudoRm(filePath: string): boolean {
   return path.resolve(filePath).startsWith("/etc/nginx/");
 }
 
-function getDeleteErrorMessage(error: unknown): string {
+function formatExecError(error: unknown): string {
   if (error instanceof Error) {
-    return error.message;
+    const execError = error as Error & { stderr?: string; stdout?: string };
+    return execError.stderr || execError.stdout || execError.message;
   }
 
   return "Unknown error";
+}
+
+async function runSudoCommand(args: string[], timeout = 120000) {
+  return execFileAsync("sudo", args, { timeout });
 }
 
 async function deletePathIfPresent(filePath: string): Promise<DeletePathResult> {
@@ -62,7 +83,7 @@ async function deletePathIfPresent(filePath: string): Promise<DeletePathResult> 
 
   try {
     if (useSudo) {
-      await execFileAsync("sudo", ["rm", filePath]);
+      await runSudoCommand(["/usr/bin/rm", filePath]);
     } else {
       await fs.promises.unlink(filePath);
     }
@@ -74,7 +95,7 @@ async function deletePathIfPresent(filePath: string): Promise<DeletePathResult> 
       method: useSudo ? "sudo rm" : "unlink",
     };
   } catch (error: any) {
-    const message = `${error?.stderr || ""} ${getDeleteErrorMessage(error)}`;
+    const message = formatExecError(error);
     const isMissing =
       error?.code === "ENOENT" || message.includes("No such file or directory");
 
@@ -89,6 +110,104 @@ async function deletePathIfPresent(filePath: string): Promise<DeletePathResult> 
 
     throw new Error(`Failed to delete ${filePath}: ${message.trim()}`);
   }
+}
+
+async function moveStagedNginxConfigToDestination(
+  stagedFilePath: string,
+  saveDestination: string
+) {
+  const destinationDir = `${saveDestination.replace(/\/+$/, "")}/`;
+  await runSudoCommand(["/usr/bin/mv", stagedFilePath, destinationDir]);
+}
+
+async function ensureNginxSymlink(fileName: string) {
+  const targetPath = path.join("/etc/nginx/sites-available", fileName);
+  const linkPath = path.join("/etc/nginx/sites-enabled", fileName);
+
+  try {
+    const linkStats = await fs.promises.lstat(linkPath);
+    if (!linkStats.isSymbolicLink()) {
+      throw new Error(`${linkPath} already exists and is not a symlink`);
+    }
+
+    const existingTarget = await fs.promises.readlink(linkPath);
+    if (existingTarget !== targetPath) {
+      throw new Error(
+        `${linkPath} already points to ${existingTarget}, expected ${targetPath}`
+      );
+    }
+
+    return;
+  } catch (error: any) {
+    if (error?.code !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  await runSudoCommand(["/usr/bin/ln", "-s", targetPath, linkPath]);
+}
+
+async function reloadNginx() {
+  await runSudoCommand(["/usr/bin/systemctl", "reload", "nginx"]);
+}
+
+async function runCertbotForDomain(domainName: string) {
+  await runSudoCommand(
+    ["/usr/bin/certbot", "--nginx", "--reinstall", "-d", domainName],
+    300000
+  );
+}
+
+async function runNginxSetupAutomation(
+  nginxFileRecord: any,
+  fileName: string
+): Promise<NginxSetupSummary> {
+  const setupSummary: NginxSetupSummary = {
+    symlink: null,
+    nginxReload: null,
+    certbot: null,
+    errors: [],
+  };
+
+  try {
+    await ensureNginxSymlink(fileName);
+    setupSummary.symlink = "yes";
+    nginxFileRecord.symlink = "yes";
+    await nginxFileRecord.save();
+  } catch (error) {
+    setupSummary.symlink = "failed";
+    setupSummary.errors.push(`symlink: ${formatExecError(error)}`);
+    nginxFileRecord.symlink = "failed";
+    await nginxFileRecord.save();
+    return setupSummary;
+  }
+
+  try {
+    await reloadNginx();
+    setupSummary.nginxReload = "yes";
+    nginxFileRecord.nginxReload = "yes";
+    await nginxFileRecord.save();
+  } catch (error) {
+    setupSummary.nginxReload = "failed";
+    setupSummary.errors.push(`nginxReload: ${formatExecError(error)}`);
+    nginxFileRecord.nginxReload = "failed";
+    await nginxFileRecord.save();
+    return setupSummary;
+  }
+
+  try {
+    await runCertbotForDomain(fileName);
+    setupSummary.certbot = "yes";
+    nginxFileRecord.certbot = "yes";
+    await nginxFileRecord.save();
+  } catch (error) {
+    setupSummary.certbot = "failed";
+    setupSummary.errors.push(`certbot: ${formatExecError(error)}`);
+    nginxFileRecord.certbot = "failed";
+    await nginxFileRecord.save();
+  }
+
+  return setupSummary;
 }
 
 // Apply JWT authentication to all routes
@@ -355,18 +474,25 @@ router.post("/create-config-file", async (req: Request, res: Response) => {
 
     if (
       !serverNamesArray.every(
-        (name) => typeof name === "string" && name.trim() !== ""
+        (name) =>
+          typeof name === "string" &&
+          name.trim() !== "" &&
+          isValidDomainName(name.trim())
       )
     ) {
       return res.status(400).json({
         error: {
           code: "VALIDATION_ERROR",
           message: "Request validation failed",
-          details: "All server names must be non-empty strings",
+          details: "All server names must be valid domain or subdomain names",
           status: 400
         }
       });
     }
+
+    const normalizedServerNamesArray = serverNamesArray.map((name) =>
+      name.trim()
+    );
 
     // Validate appHostServerMachinePublicId (non-empty string)
     if (
@@ -470,12 +596,17 @@ router.post("/create-config-file", async (req: Request, res: Response) => {
     }
 
     // Create nginx config file from template
+    const targetStoreDirectory = saveDestination.replace(/\/+$/, "");
+    const usesSitesAvailable =
+      path.resolve(targetStoreDirectory) === "/etc/nginx/sites-available";
+    const stagingDestination = usesSitesAvailable ? STAGING_DIR : targetStoreDirectory;
+
     const configResult = await createNginxConfigFromTemplate({
       templateFilePath: fileValidation.fullPath!,
-      serverNamesArray,
+      serverNamesArray: normalizedServerNamesArray,
       localIpAddress: machine.localIpAddress,
       portNumber,
-      saveDestination,
+      saveDestination: stagingDestination,
     });
 
     if (!configResult.success) {
@@ -490,12 +621,46 @@ router.post("/create-config-file", async (req: Request, res: Response) => {
       });
     }
 
+    const fileName = normalizedServerNamesArray[0];
+    const finalFilePath = path.join(targetStoreDirectory, fileName);
+
+    if (usesSitesAvailable) {
+      try {
+        await moveStagedNginxConfigToDestination(
+          configResult.filePath!,
+          targetStoreDirectory
+        );
+      } catch (error) {
+        logger.error("Failed to move nginx config from staging", {
+          error: formatExecError(error),
+        });
+
+        try {
+          await fs.promises.unlink(configResult.filePath!);
+        } catch (cleanupError) {
+          logger.warn("Failed to clean up staged nginx config", cleanupError);
+        }
+
+        return res.status(500).json({
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Failed to move nginx config file to sites-available",
+            details:
+              process.env.NODE_ENV !== "production"
+                ? formatExecError(error)
+                : undefined,
+            status: 500,
+          },
+        });
+      }
+    }
+
     // Determine framework (default to ExpressJs)
     // Note: Could be enhanced to detect framework from template or request
     const framework = "ExpressJs";
 
     // Use saveDestination as the storeDirectory
-    const storeDirectory = saveDestination;
+    const storeDirectory = targetStoreDirectory;
 
     // Auto-generate publicId
     const publicId = randomUUID();
@@ -503,19 +668,35 @@ router.post("/create-config-file", async (req: Request, res: Response) => {
     // Create NginxFile database record
     const nginxFileRecord = await NginxFile.create({
       publicId,
-      serverName: serverNamesArray[0],
-      serverNameArrayOfAdditionalServerNames: serverNamesArray.slice(1),
+      serverName: fileName,
+      serverNameArrayOfAdditionalServerNames: normalizedServerNamesArray.slice(1),
       portNumber,
       appHostServerMachinePublicId,
       nginxHostServerMachinePublicId: nginxHostMachine.publicId,
       framework,
       storeDirectory,
+      symlink: null,
+      nginxReload: null,
+      certbot: null,
     });
 
+    const setupSummary = usesSitesAvailable
+      ? await runNginxSetupAutomation(nginxFileRecord, fileName)
+      : {
+          symlink: null,
+          nginxReload: null,
+          certbot: null,
+          errors: ["Setup automation skipped because saveDestination is not /etc/nginx/sites-available"],
+        };
+
     res.status(201).json({
-      message: "Nginx config file created successfully",
-      filePath: configResult.filePath,
+      message:
+        setupSummary.errors.length > 0
+          ? "Nginx config file created with setup warnings"
+          : "Nginx config file created successfully",
+      filePath: usesSitesAvailable ? finalFilePath : configResult.filePath,
       databaseRecord: nginxFileRecord,
+      setupSummary,
     });
   } catch (error) {
     logger.error("Error creating nginx config file:", error);

@@ -14,13 +14,29 @@ describe("appUser config", () => {
     return require("../../src/config/appUser");
   }
 
+  function setRequiredPrivilegeCsvPath(
+    value = "/home/nick/nick-systemctl.csv"
+  ) {
+    process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE = value;
+  }
+
+  it("throws when PATH_AND_NAME_PRIVILIGE_CSV_FILE is not set", () => {
+    delete process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE;
+
+    expect(() => loadConfig()).toThrow(
+      "Missing required environment variable PATH_AND_NAME_PRIVILIGE_CSV_FILE"
+    );
+  });
+
   it("defaults to nick when APP_USER is not set", () => {
+    setRequiredPrivilegeCsvPath();
     delete process.env.APP_USER;
     const config = loadConfig();
     expect(config.APP_USER).toBe("nick");
   });
 
   it("derives correct paths for APP_USER=nick", () => {
+    setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
     delete process.env.STAGING_DIR;
     const config = loadConfig();
@@ -36,7 +52,8 @@ describe("appUser config", () => {
     expect(config.SYSTEMCTL_CSV_PATH).toBe("/home/nick/nick-systemctl.csv");
   });
 
-  it("derives correct paths for APP_USER=limited_user", () => {
+  it("keeps the privilege CSV path independent from APP_USER=limited_user", () => {
+    setRequiredPrivilegeCsvPath("/home/nick/nick-systemctl.csv");
     process.env.APP_USER = "limited_user";
     delete process.env.STAGING_DIR;
     const config = loadConfig();
@@ -49,12 +66,11 @@ describe("appUser config", () => {
     expect(config.STAGING_DIR).toBe(
       "/home/limited_user/project_resources/TheServerManager/staging"
     );
-    expect(config.SYSTEMCTL_CSV_PATH).toBe(
-      "/home/limited_user/limited_user-systemctl.csv"
-    );
+    expect(config.SYSTEMCTL_CSV_PATH).toBe("/home/nick/nick-systemctl.csv");
   });
 
   it("STAGING_DIR uses env var when set, overriding the derived default", () => {
+    setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
     process.env.STAGING_DIR = "/custom/staging/path";
     const config = loadConfig();
@@ -63,6 +79,7 @@ describe("appUser config", () => {
   });
 
   it("STAGING_DIR reflects process.env.STAGING_DIR directly, not derived from APP_USER_HOME", () => {
+    setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "limited_user";
     process.env.STAGING_DIR = "/srv/staging";
     const config = loadConfig();
@@ -72,6 +89,7 @@ describe("appUser config", () => {
   });
 
   it("all exported paths are absolute", () => {
+    setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
     delete process.env.STAGING_DIR;
     const config = loadConfig();

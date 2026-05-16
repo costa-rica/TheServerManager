@@ -14,6 +14,14 @@ The Server Manager API requires elevated privileges to manage systemd services a
 
 Sudo privileges are managed through a CSV file located at `/home/nick/nick-systemctl.csv`. This file defines which commands the `nick` user can execute with sudo without entering a password.
 
+The API discovers managed services from the CSV path configured by the required environment variable:
+
+```bash
+PATH_AND_NAME_PRIVILIGE_CSV_FILE=/home/nick/nick-systemctl.csv
+```
+
+This value is intentionally independent of `APP_USER`. Production services may run as `limited_user`, but passwordless sudo privileges are still managed through `nick` and `/home/nick/nick-systemctl.csv`. Do not create or depend on `/home/limited_user/limited_user-systemctl.csv`.
+
 #### Reverse Proxy Servers
 
 Use this structure on servers that host nginx reverse proxy configuration files, manage `sites-available` and `sites-enabled`, run nginx validation, reload nginx, or request certificates with certbot.
@@ -445,5 +453,6 @@ The Server Manager API returns both files, allowing the frontend to manage each 
 **Service control fails**
 
 - Verify service has entries in `nick-systemctl.csv` for the specific action
+- Verify `PATH_AND_NAME_PRIVILIGE_CSV_FILE=/home/nick/nick-systemctl.csv` is set in the API `.env`
 - Run `sudo visudo -c -f /etc/sudoers.d/nick-systemctl` to check for syntax errors
 - Ensure service exists in machine's `servicesArray` in MongoDB

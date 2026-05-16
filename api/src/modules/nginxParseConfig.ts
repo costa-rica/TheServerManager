@@ -25,6 +25,9 @@ export interface PopulatedNginxFile {
 	localIpAddressNginxHost: string | null;
 	framework: string;
 	storeDirectory: string;
+	symlink: "yes" | "failed" | null;
+	nginxReload: "yes" | "failed" | null;
+	certbot: "yes" | "failed" | null;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -153,6 +156,9 @@ export async function populateNginxFilesWithMachineData(
 			localIpAddressNginxHost: nginxHostMachine?.localIpAddress || null,
 			framework: fileObj.framework,
 			storeDirectory: fileObj.storeDirectory,
+			symlink: fileObj.symlink ?? null,
+			nginxReload: fileObj.nginxReload ?? null,
+			certbot: fileObj.certbot ?? null,
 			createdAt: fileObj.createdAt,
 			updatedAt: fileObj.updatedAt,
 		};
