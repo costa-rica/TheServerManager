@@ -17,9 +17,9 @@ All work is in the `api/` sub-project. Run commands from `cd api/`.
 
 Touches only [api/src/modules/services.ts](../../api/src/modules/services.ts) and a new test file under `api/tests/modules/`.
 
-- [ ] Update `readLogFile(pathToLogs, name)` in [api/src/modules/services.ts:332](../../api/src/modules/services.ts):
-  - [ ] Keep the existing fast path: if `path.join(pathToLogs, '${name}.log')` exists, read and return it unchanged.
-  - [ ] On miss, `fs.readdir(pathToLogs)` and filter entries against the union regex below. Escape `name` before building the regex.
+- [x] Update `readLogFile(pathToLogs, name)` in [api/src/modules/services.ts:332](../../api/src/modules/services.ts):
+  - [x] Keep the existing fast path: if `path.join(pathToLogs, '${name}.log')` exists, read and return it unchanged.
+  - [x] On miss, `fs.readdir(pathToLogs)` and filter entries against the union regex below. Escape `name` before building the regex.
         ```ts
         const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
         const dateSuffixed = new RegExp(
@@ -31,21 +31,21 @@ Touches only [api/src/modules/services.ts](../../api/src/modules/services.ts) an
           `)$`
         );
         ```
-  - [ ] If no candidates match, return `{ success: false, error: ... }` whose message names both lookups attempted (the legacy `{name}.log` path and the date-suffixed pattern).
-  - [ ] If one or more candidates match, `fs.stat` each, pick the entry with the newest `mtime`, read it, return it as `{ success: true, content }`.
-  - [ ] Preserve the existing logger calls and the directory-missing branch.
-- [ ] Add `api/tests/modules/services.test.ts` covering `readLogFile`. Each test uses a fresh tempdir under `os.tmpdir()` and cleans up afterward:
-  - [ ] `returns_legacy_when_present` — only `{name}.log` exists → returns its content via the fast path.
-  - [ ] `returns_base_dated_file` — only `{name}-2026-05-17.log` exists → returns it.
-  - [ ] `returns_newest_node_overflow_by_mtime` — `{name}-2026-05-17.log` (older mtime) + `{name}-2026-05-17.log.1` (newer mtime via `fs.utimes`) → returns `.log.1`.
-  - [ ] `returns_newest_loguru_overflow_by_mtime` — `{name}-2026-05-17.2026-05-17_12-56-30_269989.log` (older mtime) + `{name}-2026-05-17.log` (newer mtime) → returns the active `.log` file.
-  - [ ] `matches_loguru_rename_when_only_candidate` — only `{name}-2026-05-17.2026-05-17_12-56-30_269989.log` exists → regex matches and the file is returned. (Regression test for the V02 regex bug.)
-  - [ ] `prefers_legacy_when_both_exist` — `{name}.log` and `{name}-2026-05-17.log` both exist → returns the legacy file (fast path wins).
-  - [ ] `missing_directory` — `pathToLogs` does not exist → `{success: false}` with a directory-missing message.
-  - [ ] `missing_file` — directory exists but no matching files → `{success: false}` whose error message names both the legacy path and the date-suffixed pattern attempted.
-- [ ] Run `npm test` from `api/` — all tests (existing + new) must pass.
-- [ ] Run `npm run build` from `api/` — `tsc` must succeed with no errors.
-- [ ] Check off this phase's items and commit. Commit message references this TODO file and Phase 1.
+  - [x] If no candidates match, return `{ success: false, error: ... }` whose message names both lookups attempted (the legacy `{name}.log` path and the date-suffixed pattern).
+  - [x] If one or more candidates match, `fs.stat` each, pick the entry with the newest `mtime`, read it, return it as `{ success: true, content }`.
+  - [x] Preserve the existing logger calls and the directory-missing branch.
+- [x] Add `api/tests/modules/services.test.ts` covering `readLogFile`. Each test uses a fresh tempdir under `os.tmpdir()` and cleans up afterward:
+  - [x] `returns_legacy_when_present` — only `{name}.log` exists → returns its content via the fast path.
+  - [x] `returns_base_dated_file` — only `{name}-2026-05-17.log` exists → returns it.
+  - [x] `returns_newest_node_overflow_by_mtime` — `{name}-2026-05-17.log` (older mtime) + `{name}-2026-05-17.log.1` (newer mtime via `fs.utimes`) → returns `.log.1`.
+  - [x] `returns_newest_loguru_overflow_by_mtime` — `{name}-2026-05-17.2026-05-17_12-56-30_269989.log` (older mtime) + `{name}-2026-05-17.log` (newer mtime) → returns the active `.log` file.
+  - [x] `matches_loguru_rename_when_only_candidate` — only `{name}-2026-05-17.2026-05-17_12-56-30_269989.log` exists → regex matches and the file is returned. (Regression test for the V02 regex bug.)
+  - [x] `prefers_legacy_when_both_exist` — `{name}.log` and `{name}-2026-05-17.log` both exist → returns the legacy file (fast path wins).
+  - [x] `missing_directory` — `pathToLogs` does not exist → `{success: false}` with a directory-missing message.
+  - [x] `missing_file` — directory exists but no matching files → `{success: false}` whose error message names both the legacy path and the date-suffixed pattern attempted.
+- [x] Run `npm test` from `api/` — all tests (existing + new) must pass.
+- [x] Run `npm run build` from `api/` — `tsc` must succeed with no errors.
+- [x] Check off this phase's items and commit. Commit message references this TODO file and Phase 1.
 
 ---
 

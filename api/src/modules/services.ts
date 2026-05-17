@@ -326,7 +326,7 @@ export async function toggleService(
 /**
  * Read a log file for a service
  * @param pathToLogs - The directory path where logs are stored
- * @param name - The service name (used to construct {name}.log)
+ * @param name - The service name (used to construct legacy and dated log names)
  * @returns Object with success status and log content or error message
  */
 export async function readLogFile(
@@ -348,19 +348,51 @@ export async function readLogFile(
       };
     }
 
-    // Check if log file exists
+    // Check if legacy log file exists
     try {
       await fs.access(logFilePath);
+      const content = await fs.readFile(logFilePath, "utf8");
+      logger.info(`[services.ts] Successfully read log file, size: ${content.length} bytes`);
+      return { success: true, content };
     } catch (error) {
-      logger.error(`[services.ts] Log file does not exist: ${logFilePath}`);
+      logger.info(`[services.ts] Legacy log file does not exist: ${logFilePath}`);
+    }
+
+    const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const dateSuffixedPattern =
+      `^${escapedName}-\\d{4}-\\d{2}-\\d{2}` +
+      `(?:` +
+      `\\.log(?:\\.\\d+)?` +
+      `|\\.\\d+\\.log` +
+      `|\\.\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}_\\d+\\.log` +
+      `)$`;
+    const dateSuffixed = new RegExp(dateSuffixedPattern);
+    const entries = await fs.readdir(pathToLogs);
+    const candidates = entries.filter((entry) => dateSuffixed.test(entry));
+
+    if (candidates.length === 0) {
+      logger.error(
+        `[services.ts] No log files found for ${name}; checked ${logFilePath} and pattern ${dateSuffixedPattern}`
+      );
       return {
         success: false,
-        error: `Log file does not exist: ${logFilePath}`,
+        error: `Log file does not exist. Checked legacy path: ${logFilePath}; date-suffixed pattern: ${dateSuffixedPattern}`,
       };
     }
 
-    // Read the log file
-    const content = await fs.readFile(logFilePath, "utf8");
+    const candidatesWithStats = await Promise.all(
+      candidates.map(async (entry) => {
+        const filePath = path.join(pathToLogs, entry);
+        const stats = await fs.stat(filePath);
+        return { filePath, mtimeMs: stats.mtimeMs };
+      })
+    );
+    const newest = candidatesWithStats.reduce((currentNewest, candidate) =>
+      candidate.mtimeMs > currentNewest.mtimeMs ? candidate : currentNewest
+    );
+
+    logger.info(`[services.ts] Reading newest date-suffixed log file: ${newest.filePath}`);
+    const content = await fs.readFile(newest.filePath, "utf8");
     logger.info(`[services.ts] Successfully read log file, size: ${content.length} bytes`);
     return { success: true, content };
   } catch (error: any) {
