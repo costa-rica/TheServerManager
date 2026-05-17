@@ -1,8 +1,8 @@
 ---
 created_at: 2026-05-17
 updated_at: 2026-05-17
-created_by: codex (gpt-5)
-modified_by: codex (gpt-5)
+created_by: codex (gpt-5.5)
+modified_by: codex (gpt-5.5)
 ---
 
 # Assessment: Fix Log Location Plan V02
