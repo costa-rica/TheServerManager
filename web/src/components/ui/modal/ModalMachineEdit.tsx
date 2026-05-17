@@ -49,7 +49,7 @@ export const ModalMachineEdit: React.FC<ModalMachineEditProps> = ({
   );
   const [expandedServices, setExpandedServices] = useState<boolean[]>(
     machine.servicesArray && machine.servicesArray.length > 0
-      ? machine.servicesArray.map(() => false) // Existing services collapsed by default
+      ? machine.servicesArray.map((_, i) => i === 0) // First service expanded so "Path to Logs" is visible
       : [true] // New empty service expanded by default
   );
   const [isCheckingServices, setIsCheckingServices] = useState(false);

@@ -28,7 +28,7 @@ export const ModalMachineAdd: React.FC<ModalMachineAddProps> = ({
     {
       name: "", // Will be auto-populated by backend
       filename: "",
-      pathToLogs: "/home/nick/logs/",
+      pathToLogs: "/home/limited_user/logs/",
       filenameTimer: "",
       port: undefined,
     },
@@ -57,7 +57,7 @@ export const ModalMachineAdd: React.FC<ModalMachineAddProps> = ({
       {
         name: "", // Will be auto-populated by backend
         filename: "",
-        pathToLogs: "/home/nick/logs/",
+        pathToLogs: "/home/limited_user/logs/",
         filenameTimer: "",
         port: undefined,
       },
@@ -246,7 +246,7 @@ export const ModalMachineAdd: React.FC<ModalMachineAddProps> = ({
                             e.target.value
                           )
                         }
-                        placeholder="/home/nick/logs/"
+                        placeholder="/home/limited_user/logs/"
                         className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all"
                       />
                     </div>
