@@ -1,4 +1,4 @@
-# AGENT.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -67,9 +67,9 @@ Redux store configuration in `src/store/index.ts`:
 // Store setup with persistence
 const rootReducer = combineReducers({ user });
 const persistConfig = {
-  key: "root",
-  storage,
-  whitelist: ["user"], // Only persist user slice
+	key: "root",
+	storage,
+	whitelist: ["user"], // Only persist user slice
 };
 ```
 
@@ -149,13 +149,13 @@ All non-auth API calls continue to use direct fetch to backend:
 
 ```typescript
 const response = await fetch(
-  `${process.env.NEXT_PUBLIC_EXTERNAL_API_BASE_URL}/endpoint`,
-  {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  },
+	`${process.env.NEXT_PUBLIC_EXTERNAL_API_BASE_URL}/endpoint`,
+	{
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${token}`,
+		},
+	},
 );
 ```
 
@@ -270,7 +270,7 @@ const { isDarkMode, toggleTheme } = useTheme();
 // Sidebar state
 import { useSidebar } from "@/context/SidebarContext";
 const { isExpanded, isMobileOpen, toggleSidebar, toggleMobileSidebar } =
-  useSidebar();
+	useSidebar();
 ```
 
 ## Styling Guide
@@ -335,12 +335,12 @@ User the connected machine's API to make API calls. These examples are for the f
 ```typescript
 // src/app/api/auth/login/route.ts
 const response = await fetch(
-  `${process.env.NEXT_PUBLIC_INTERNAL_API_BASE_URL}/users/login`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  },
+	`${process.env.NEXT_PUBLIC_INTERNAL_API_BASE_URL}/users/login`,
+	{
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ email, password }),
+	},
 );
 ```
 
@@ -349,10 +349,10 @@ const response = await fetch(
 ```typescript
 // src/app/(dashboard)/servers/machines/page.tsx
 const response = await fetch(
-  `${process.env.NEXT_PUBLIC_EXTERNAL_API_BASE_URL}/machines`,
-  {
-    headers: { Authorization: `Bearer ${token}` },
-  },
+	`${process.env.NEXT_PUBLIC_EXTERNAL_API_BASE_URL}/machines`,
+	{
+		headers: { Authorization: `Bearer ${token}` },
+	},
 );
 ```
 
