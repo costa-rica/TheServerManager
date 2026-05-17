@@ -1,4 +1,4 @@
-# AGENT.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -146,12 +146,12 @@ All API errors should return a consistent JSON structure:
 
 ```json
 {
-  "error": {
-    "code": "ERROR_CODE_HERE",
-    "message": "User-facing error message",
-    "details": "Additional context (optional)",
-    "status": 500
-  }
+	"error": {
+		"code": "ERROR_CODE_HERE",
+		"message": "User-facing error message",
+		"details": "Additional context (optional)",
+		"status": 500
+	}
 }
 ```
 
@@ -167,25 +167,25 @@ All API errors should return a consistent JSON structure:
 ```typescript
 // Single error
 res.status(404).json({
-  error: {
-    code: "MACHINE_NOT_FOUND",
-    message: "Machine not found",
-    details: process.env.NODE_ENV === "development" ? error.message : undefined,
-    status: 404,
-  },
+	error: {
+		code: "MACHINE_NOT_FOUND",
+		message: "Machine not found",
+		details: process.env.NODE_ENV === "development" ? error.message : undefined,
+		status: 404,
+	},
 });
 
 // Validation errors
 res.status(400).json({
-  error: {
-    code: "VALIDATION_ERROR",
-    message: "Request validation failed",
-    status: 400,
-    details: [
-      { field: "email", message: "Invalid email format" },
-      { field: "port", message: "Must be a number" },
-    ],
-  },
+	error: {
+		code: "VALIDATION_ERROR",
+		message: "Request validation failed",
+		status: 400,
+		details: [
+			{ field: "email", message: "Invalid email format" },
+			{ field: "port", message: "Must be a number" },
+		],
+	},
 });
 ```
 

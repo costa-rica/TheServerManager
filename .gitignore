@@ -21,3 +21,6 @@ build/
 
 # Docs
 docs/testEndpoints.md
+
+# Migration audit output
+api/scripts/logs/

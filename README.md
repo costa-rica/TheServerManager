@@ -108,10 +108,10 @@ TheServerManager/
 | [docs/DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md)             | MongoDB schema and collection reference   |
 | [docs/SERVER_INTERACTIONS.md](docs/SERVER_INTERACTIONS.md)           | How the API, web, and servers communicate |
 | [docs/api/](docs/api/)                                               | Detailed docs for each API router         |
-| [docs/requirements/](docs/requirements/)                             | Feature and error handling requirements   |
+| [docs/archived/](docs/archived/)                                     | Archived requirements and planning docs   |
 | [docs/server-scripts/](docs/server-scripts/)                         | Scripts deployed to managed servers       |
-| [api/AGENT.md](api/AGENT.md)                                         | API-specific development notes            |
-| [web/AGENT.md](web/AGENT.md)                                         | Web-specific development notes            |
+| [api/AGENTS.md](api/AGENTS.md)                                       | API-specific development notes            |
+| [web/AGENTS.md](web/AGENTS.md)                                       | Web-specific development notes            |
 
 ---
 

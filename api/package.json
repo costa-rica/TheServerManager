@@ -10,7 +10,8 @@
     "test": "npm run test:unit",
     "test:unit": "jest --runInBand",
     "test:watch": "jest --watch --testPathIgnorePatterns=/tests/integration/",
-    "test:integration": "jest --runInBand tests/integration --passWithNoTests"
+    "test:integration": "jest --runInBand tests/integration --passWithNoTests",
+    "update-logs-paths": "node scripts/update-logs-paths.js"
   },
   "keywords": [],
   "author": "",
