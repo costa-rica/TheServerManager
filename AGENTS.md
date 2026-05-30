@@ -131,6 +131,7 @@ Rules:
 - `updated_at` is rewritten to today's date on every modification.
 - `created_by` is set once, at file creation, and MUST NEVER be modified on later edits.
 - `modified_by` is rewritten on every modification. On the very first write, set it to the same value as `created_by`.
+- `modified_by` must be one line containing only the latest modifier.
 - The `created_by` / `modified_by` value uses the format `<agent name> (<model>)`, lowercase only, with no email addresses and no angle brackets.
 
 Acceptable examples:
@@ -141,6 +142,14 @@ created_by: claude (opus-4.7)
 created_by: codex (gpt-5)
 modified_by: claude (haiku-4.5)
 ```
+
+### Archive Subfolder
+
+- Really old docs are moved into `docs/archive/`.
+- Organized into per-month subfolders named `YYYYMM/` (e.g. `202604/`).
+- Not every month will have a folder — only months with archived files exist.
+- Usually managed by the operator, not the AI coding agent.
+- Agents: these files are kept for reference only; do not review them when scanning the project to build context.
 
 ## Commit Message Guidance
 
