@@ -20,7 +20,13 @@ describe("appUser config", () => {
     process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE = value;
   }
 
+  function setRequiredAppUserEnv() {
+    process.env.APP_USER = "nick";
+    process.env.STAGING_DIR = "/tmp/tsm-test-staging";
+  }
+
   it("throws when PATH_AND_NAME_PRIVILIGE_CSV_FILE is not set", () => {
+    setRequiredAppUserEnv();
     delete process.env.PATH_AND_NAME_PRIVILIGE_CSV_FILE;
 
     expect(() => loadConfig()).toThrow(
@@ -28,17 +34,30 @@ describe("appUser config", () => {
     );
   });
 
-  it("defaults to nick when APP_USER is not set", () => {
+  it("throws when APP_USER is not set", () => {
     setRequiredPrivilegeCsvPath();
+    process.env.STAGING_DIR = "/tmp/tsm-test-staging";
     delete process.env.APP_USER;
-    const config = loadConfig();
-    expect(config.APP_USER).toBe("nick");
+
+    expect(() => loadConfig()).toThrow(
+      "Missing required environment variable APP_USER"
+    );
+  });
+
+  it("throws when STAGING_DIR is not set", () => {
+    setRequiredPrivilegeCsvPath();
+    process.env.APP_USER = "nick";
+    delete process.env.STAGING_DIR;
+
+    expect(() => loadConfig()).toThrow(
+      "Missing required environment variable STAGING_DIR"
+    );
   });
 
   it("derives correct paths for APP_USER=nick", () => {
     setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
-    delete process.env.STAGING_DIR;
+    process.env.STAGING_DIR = "/tmp/tsm-test-staging";
     const config = loadConfig();
 
     expect(config.APP_USER).toBe("nick");
@@ -46,16 +65,14 @@ describe("appUser config", () => {
     expect(config.APP_USER_GROUP).toBe("nick");
     expect(config.APPLICATIONS_DIR).toBe("/home/nick/applications");
     expect(config.ENVIRONMENTS_DIR).toBe("/home/nick/environments");
-    expect(config.STAGING_DIR).toBe(
-      "/home/nick/project_resources/TheServerManager/staging"
-    );
+    expect(config.STAGING_DIR).toBe("/tmp/tsm-test-staging");
     expect(config.SYSTEMCTL_CSV_PATH).toBe("/home/nick/nick-systemctl.csv");
   });
 
   it("keeps the privilege CSV path independent from APP_USER=limited_user", () => {
     setRequiredPrivilegeCsvPath("/home/nick/nick-systemctl.csv");
     process.env.APP_USER = "limited_user";
-    delete process.env.STAGING_DIR;
+    process.env.STAGING_DIR = "/srv/staging";
     const config = loadConfig();
 
     expect(config.APP_USER).toBe("limited_user");
@@ -63,13 +80,11 @@ describe("appUser config", () => {
     expect(config.APP_USER_GROUP).toBe("limited_user");
     expect(config.APPLICATIONS_DIR).toBe("/home/limited_user/applications");
     expect(config.ENVIRONMENTS_DIR).toBe("/home/limited_user/environments");
-    expect(config.STAGING_DIR).toBe(
-      "/home/limited_user/project_resources/TheServerManager/staging"
-    );
+    expect(config.STAGING_DIR).toBe("/srv/staging");
     expect(config.SYSTEMCTL_CSV_PATH).toBe("/home/nick/nick-systemctl.csv");
   });
 
-  it("STAGING_DIR uses env var when set, overriding the derived default", () => {
+  it("STAGING_DIR uses env var when set", () => {
     setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
     process.env.STAGING_DIR = "/custom/staging/path";
@@ -91,7 +106,7 @@ describe("appUser config", () => {
   it("all exported paths are absolute", () => {
     setRequiredPrivilegeCsvPath();
     process.env.APP_USER = "nick";
-    delete process.env.STAGING_DIR;
+    process.env.STAGING_DIR = "/tmp/tsm-test-staging";
     const config = loadConfig();
 
     expect(config.APP_USER_HOME.startsWith("/")).toBe(true);

@@ -28,6 +28,9 @@ const requiredEnvVars = [
   "NODE_ENV",
   "NAME_APP",
   "PATH_TO_LOGS",
+  "APP_USER",
+  "STAGING_DIR",
+  "PATH_PROJECT_RESOURCES",
   "PATH_AND_NAME_PRIVILIGE_CSV_FILE",
 ];
 const missingVars: string[] = [];

@@ -82,7 +82,7 @@ Each sub-project has its own `.env` file (gitignored). See `api/.env.example` fo
 
 - `PORT`, `JWT_SECRET`, `MONGODB_URI`, `NODE_ENV`
 - `ADMIN_EMAIL` — JSON array of admin email addresses
-- `PATH_TO_LOGS`, `PROJECT_RESOURCES`
+- `PATH_TO_LOGS`, `PATH_PROJECT_RESOURCES`
 - Porkbun, Nodemailer credentials for DNS and email features
 
 **Web** (`web/.env`):
