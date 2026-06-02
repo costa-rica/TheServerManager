@@ -1,10 +1,21 @@
+---
+created_at: 2026-02-11
+updated_at: 2026-06-01
+created_by: unknown
+modified_by: claude (opus-4.8)
+---
+
 # The Server Manager
 
 The Server Manager project is an ecosystem of APIs that are deployed on Ubuntu servers and a front facing Next.js web application that connects to these APIs.
 
+> For server-side privilege/sudo details that on-server AI agents need, see [Agent_Server_Access.md](Agent_Server_Access.md).
+
 ## The Server Manager API
 
-The Server Manager API is an ExpressJS TypeScript application that provides a RESTful API for managing servers and their applications. Each Ubuntu server runs its own instance of this API, all secured by a shared authentication layer and unified MongoDB instance.
+The Server Manager API is an Express.js 5 TypeScript application (port 3000) that provides a RESTful API for managing servers and their applications. Each Ubuntu server runs its own instance of this API, all secured by a shared authentication layer and unified MongoDB instance.
+
+The API is organized into routers: `index`, `users` (auth), `machines`, `services`, `nginx`, `registrar` (Porkbun DNS), and `admin`. Beyond service status and control, the `services` router also exposes git (branch list, fetch, pull, checkout, delete), npm (install, build), log reading, systemd service-file generation/editing, and `.env`/`.env.local` management. JWT auth is enforced via `Authorization: Bearer <token>`; all errors return `{ error: { code, message, details?, status } }`.
 
 ## The Server Manager Ecosystem
 
@@ -41,18 +52,19 @@ TheServerManager/
 │        ├── app/
 │        ├── components/
 │        └── types/
-├── api/                      # FastAPI or ExpressJS
+├── api/                      # Express.js 5 (TypeScript)
 │   ├── .env
 │   ├── docs/
-│   ├── requirements.txt or package.json
+│   ├── package.json
 │   ├── node_modules/
 │   ├── tests/
 │   └── src/
 │        ├── routes/
 │        ├── models/
 │        ├── modules/
-│        ├── main.py, server.js, index.js
-│        └── requirements.txt
+│        ├── config/
+│        ├── templates/       # nginx + systemd templates
+│        └── server.ts        # entry → app.ts → routers
 ├── docs/                     # Project-wide documentation
 ├── .gitignore
 └── README.md

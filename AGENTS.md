@@ -94,7 +94,7 @@ Each sub-project has its own `.env` file (gitignored). See `api/.env.example` fo
 
 ## Server Interactions & Sudo Privileges
 
-**Read `docs/SERVER_INTERACTIONS.md` before modifying any code that uses `sudo` commands** (e.g., reading/writing nginx configs, managing systemd services, or controlling services via `systemctl`).
+**Read `docs/Agent_Server_Access.md` before modifying any code that uses `sudo` commands** (e.g., reading/writing nginx configs, managing systemd services, or controlling services via `systemctl`).
 
 The API runs as a regular user (`nick`) and relies on specific NOPASSWD sudoers rules for system operations. These rules are managed through a CSV file (`/home/nick/nick-systemctl.csv`) and applied via an update script. If you add or change any `sudo` command in the API, you must also update the CSV and document the required sudoers entry — otherwise the command will fail at runtime with "sudo: a password is required".
 
