@@ -101,17 +101,17 @@ TheServerManager/
 
 ## Documentation
 
-| Document                                                             | Description                               |
-| -------------------------------------------------------------------- | ----------------------------------------- |
-| [docs/The_Server_Manager_Overview.md](docs/The_Server_Manager_Overview.md) | Full ecosystem overview and goals   |
-| [docs/API_REFERENCE.md](docs/API_REFERENCE.md)                       | API endpoint reference index              |
-| [docs/DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md)             | MongoDB schema and collection reference   |
-| [docs/Agent_Server_Access.md](docs/Agent_Server_Access.md)           | Server sudo privileges and agent access    |
-| [docs/api/](docs/api/)                                               | Detailed docs for each API router         |
-| [docs/archived/](docs/archived/)                                     | Archived requirements and planning docs   |
-| [docs/server-scripts/](docs/server-scripts/)                         | Scripts deployed to managed servers       |
-| [api/AGENTS.md](api/AGENTS.md)                                       | API-specific development notes            |
-| [web/AGENTS.md](web/AGENTS.md)                                       | Web-specific development notes            |
+| Document                                                                   | Description                             |
+| -------------------------------------------------------------------------- | --------------------------------------- |
+| [docs/The_Server_Manager_Overview.md](docs/The_Server_Manager_Overview.md) | Full ecosystem overview and goals       |
+| [docs/API_REFERENCE.md](docs/API_REFERENCE.md)                             | API endpoint reference index            |
+| [docs/DATABASE_REFERENCE.md](docs/DATABASE_REFERENCE.md)                   | MongoDB schema and collection reference |
+| [docs/Agent_Server_Access.md](docs/Agent_Server_Access.md)                 | Server sudo privileges and agent access |
+| [docs/api/](docs/api/)                                                     | Detailed docs for each API router       |
+| [docs/archive/](docs/archive/)                                             | Archived requirements and planning docs |
+| [docs/server-scripts/](docs/server-scripts/)                               | Scripts deployed to managed servers     |
+| [api/AGENTS.md](api/AGENTS.md)                                             | API-specific development notes          |
+| [web/AGENTS.md](web/AGENTS.md)                                             | Web-specific development notes          |
 
 ---
 
